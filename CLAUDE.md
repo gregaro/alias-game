@@ -21,31 +21,49 @@ question, not a design input.
   scorer; a Mac runs OBS. OBS pulls the overlay as a browser source over the
   network and composites it onto the pre-rendered avatar video.
 
-## Files
+## Folder structure
 
-- `server.py` — Flask overlay server. Serves `overlay.html` at `/`, the live
-  state at `/state`, and a test control at `/timer/<seconds>` (and `/timer/stop`).
-- `overlay.html` — transparent overlay page (leaderboard, question lower-third,
-  countdown ring). Polls `/state` every 1s. Added to OBS as a Browser Source.
-- `state.json` — the shared state: `phase`, `question`, `window_ends_at`
-  (epoch seconds), `leaderboard` (list of `{name, score}`).
-- `chat_scorer.py` — finds the active broadcast's liveChatId, polls
-  `liveChatMessages.list`, scores answers, writes `state.json`. You press Enter
-  to open each question's answer window (manual orchestrator).
-- `normalize.py` — answer normalization + matching. Armenian-aware.
-- `questions.json` — `window_seconds`, `points` (decay schedule), `min_points`,
-  and `questions[]` with `text` + `answers[]` variants.
-- `youtube_auth.py` — OAuth with token caching (`token.json`). First run opens a
-  browser; later runs refresh silently.
+Files are split into folders by role. Scripts resolve their paths relative to
+their own location (`HERE`-based), so they work from anywhere and folders can
+move together without code edits.
+
+```
+code/
+├── overlay/
+│   ├── server.py       Flask overlay server. Serves overlay.html at /, live
+│   │                   state at /state, a test control at /timer/<seconds>
+│   │                   (and /timer/stop). Reads ../overlay/state.json.
+│   ├── overlay.html    Transparent overlay page (leaderboard, question
+│   │                   lower-third, countdown ring). Polls /state every 1s.
+│   │                   Added to OBS as a Browser Source.
+│   └── state.json      The shared state: phase, question, window_ends_at
+│                       (epoch seconds), leaderboard ([{name, score}]).
+│                       Gitignored — runtime artifact.
+├── questions/
+│   └── questions.json  window_seconds, points (decay schedule), min_points,
+│                       and questions[] with text + answers[] variants.
+├── scorer/
+│   ├── chat_scorer.py  Finds the active broadcast's liveChatId, polls
+│   │                   liveChatMessages.list, scores answers, writes
+│   │                   ../overlay/state.json. You press Enter to open each
+│   │                   question's answer window (manual orchestrator).
+│   ├── normalize.py    Answer normalization + matching. Armenian-aware.
+│   ├── youtube_auth.py OAuth with token caching. First run opens a browser;
+│   │                   later runs refresh silently. Reads/writes ../secrets/.
+│   └── test_youtube_auth.py  Standalone auth smoke test (prints channel name).
+└── secrets/            Gitignored entirely — never commit anything here.
+    ├── client_secret.json  OAuth client downloaded from Google Cloud.
+    └── token.json          Created automatically after first authorization.
+```
 
 ## How to run
 
-On the Pi, from the folder containing all files (they must be co-located):
+On the Pi, from the repo root (`alias-game/`):
 
 ```
 pip install flask google-api-python-client google-auth-oauthlib
-python server.py        # overlay server, binds 0.0.0.0:8080
-python chat_scorer.py   # scorer (broadcast must be LIVE, not just scheduled)
+python code/overlay/server.py       # overlay server, binds 0.0.0.0:8080
+python code/scorer/chat_scorer.py   # scorer (broadcast must be LIVE, not just scheduled)
 ```
 
 OBS (Mac): Browser Source -> `http://<pi-lan-ip>:8080`, 1920x1080, layered
