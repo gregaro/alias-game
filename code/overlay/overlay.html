@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, initial-scale=1">
+<title>Quiz Overlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --panel: rgba(14, 16, 24, 0.86);
+    --panel-edge: rgba(255, 255, 255, 0.08);
+    --gold: #FFC23D;
+    --gold-soft: rgba(255, 194, 61, 0.16);
+    --leader: #34E0A1;
+    --text: #F5F7FA;
+    --muted: #8A93A6;
+    --danger: #FF5468;
+    --row-h: 56px;
+    --row-gap: 8px;
+  }
+
+  /* Transparent canvas: OBS composites everything below over your video. */
+  html, body {
+    margin: 0;
+    width: 1920px;
+    height: 1080px;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Inter", system-ui, sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- Leaderboard (top-right) ---------- */
+  .board {
+    position: absolute;
+    top: 48px;
+    right: 48px;
+    width: 380px;
+    background: var(--panel);
+    border: 1px solid var(--panel-edge);
+    border-radius: 18px;
+    padding: 20px 20px 24px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  }
+  .board__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 2px 4px 18px;
+  }
+  .board__title {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .live__dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 0 0 rgba(255, 84, 104, 0.6);
+    animation: pulse 1.8s infinite;
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 84, 104, 0.55); }
+    70%  { box-shadow: 0 0 0 9px rgba(255, 84, 104, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 84, 104, 0); }
+  }
+
+  /* Rows are absolutely positioned and moved with translateY, so rank changes
+     glide instead of jumping. Each row is keyed by player name. */
+  .rows {
+    position: relative;
+  }
+  .row {
+    position: absolute;
+    left: 0; right: 0;
+    height: var(--row-h);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                background-color 0.5s ease, opacity 0.4s ease;
+    will-change: transform;
+  }
+  .row__rank {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    width: 30px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .row__name {
+    flex: 1;
+    font-weight: 500;
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 10px;
+  }
+  .row__score {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  /* Leader gets the gold treatment. */
+  .row.is-leader {
+    background: var(--gold-soft);
+    border: 1px solid rgba(255, 194, 61, 0.35);
+  }
+  .row.is-leader .row__rank,
+  .row.is-leader .row__score { color: var(--gold); }
+  /* Brief flash when a player's score just went up. */
+  .row.bumped { background: rgba(52, 224, 161, 0.22); }
+
+  /* ---------- Question lower-third (bottom center) ---------- */
+  .qbar {
+    position: absolute;
+    left: 50%;
+    bottom: 64px;
+    transform: translateX(-50%);
+    width: 1180px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    background: var(--panel);
+    border: 1px solid var(--panel-edge);
+    border-radius: 20px;
+    padding: 22px 28px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .qbar.show { opacity: 1; }
+  .qbadge {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 86px; height: 86px;
+    border-radius: 16px;
+    background: var(--gold);
+    color: #1a1407;
+  }
+  .qbadge__num {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: 34px;
+    line-height: 1;
+  }
+  .qbadge__of {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-top: 3px;
+  }
+  .qtext {
+    flex: 1;
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  /* ---------- Countdown ring (right end of the bar) ---------- */
+  .timer {
+    flex-shrink: 0;
+    position: relative;
+    width: 92px; height: 92px;
+    display: none;
+  }
+  .timer.show { display: block; }
+  .timer svg { transform: rotate(-90deg); }
+  .timer__track { stroke: rgba(255, 255, 255, 0.12); }
+  .timer__fill {
+    stroke: var(--gold);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.15s linear, stroke 0.3s ease;
+  }
+  .timer__num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer.low .timer__fill { stroke: var(--danger); }
+  .timer.low .timer__num { color: var(--danger); }
+  .timer.low { animation: shake 0.9s ease-in-out infinite; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .row, .timer__fill { transition: none; }
+    .live__dot, .timer.low { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <!-- Leaderboard -->
+  <div class="board">
+    <div class="board__head">
+      <span class="board__title">Leaderboard</span>
+      <span class="live"><span class="live__dot"></span>Live</span>
+    </div>
+    <div class="rows" id="rows"></div>
+  </div>
+
+  <!-- Question + countdown -->
+  <div class="qbar" id="qbar">
+    <div class="qbadge">
+      <span class="qbadge__num" id="qnum">–</span>
+      <span class="qbadge__of" id="qof">Q</span>
+    </div>
+    <div class="qtext" id="qtext"></div>
+    <div class="timer" id="timer">
+      <svg width="92" height="92" viewBox="0 0 92 92">
+        <circle class="timer__track" cx="46" cy="46" r="40" fill="none" stroke-width="7"/>
+        <circle class="timer__fill"  cx="46" cy="46" r="40" fill="none" stroke-width="7"
+                id="ring" stroke-dasharray="251.3" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer__num" id="tnum">0</div>
+    </div>
+  </div>
+
+<script>
+  const POLL_MS = 1000;
+  const RING_CIRCUMFERENCE = 2 * Math.PI * 40; // r = 40
+  const rowsEl = document.getElementById("rows");
+  const ROW_TOTAL = 56 + 8; // row height + gap, keep in sync with CSS
+
+  // Persistent row nodes keyed by player name, so rank changes animate.
+  const rowNodes = new Map();
+  const prevScores = new Map();
+
+  // The countdown is computed locally from window_ends_at (epoch seconds),
+  // so it ticks smoothly between the once-a-second state polls.
+  let windowEndsAt = null;
+  let windowTotal = null; // seconds the window started with, for the ring fraction
+
+  function renderLeaderboard(board) {
+    const top = (board || []).slice(0, 10);
+    const seen = new Set();
+
+    top.forEach((p, i) => {
+      seen.add(p.name);
+      let node = rowNodes.get(p.name);
+      if (!node) {
+        node = document.createElement("div");
+        node.className = "row";
+        node.innerHTML =
+          '<span class="row__rank"></span>' +
+          '<span class="row__name"></span>' +
+          '<span class="row__score"></span>';
+        rowsEl.appendChild(node);
+        rowNodes.set(p.name, node);
+      }
+      node.querySelector(".row__rank").textContent = "#" + (i + 1);
+      node.querySelector(".row__name").textContent = p.name;
+      node.querySelector(".row__score").textContent = p.score;
+      node.style.transform = "translateY(" + (i * ROW_TOTAL) + "px)";
+      node.classList.toggle("is-leader", i === 0);
+
+      // Flash the row if this player's score just increased.
+      const prev = prevScores.get(p.name);
+      if (prev !== undefined && p.score > prev) {
+        node.classList.add("bumped");
+        setTimeout(() => node.classList.remove("bumped"), 900);
+      }
+      prevScores.set(p.name, p.score);
+    });
+
+    // Remove players who dropped out of the top 10.
+    for (const [name, node] of rowNodes) {
+      if (!seen.has(name)) {
+        node.style.opacity = "0";
+        setTimeout(() => { node.remove(); }, 400);
+        rowNodes.delete(name);
+        prevScores.delete(name);
+      }
+    }
+    rowsEl.style.height = (top.length * ROW_TOTAL) + "px";
+  }
+
+  function renderQuestion(q) {
+    const bar = document.getElementById("qbar");
+    if (!q || !q.text) { bar.classList.remove("show"); return; }
+    document.getElementById("qnum").textContent = q.number ?? "–";
+    document.getElementById("qof").textContent = q.total ? ("of " + q.total) : "Q";
+    document.getElementById("qtext").textContent = q.text;
+    bar.classList.add("show");
+  }
+
+  // Smooth countdown loop, independent of polling.
+  function tickTimer() {
+    const timer = document.getElementById("timer");
+    const ring = document.getElementById("ring");
+    const tnum = document.getElementById("tnum");
+
+    if (windowEndsAt === null) { timer.classList.remove("show", "low"); return; }
+    const remaining = windowEndsAt - (Date.now() / 1000);
+    if (remaining <= 0) {
+      timer.classList.remove("show", "low");
+      windowEndsAt = null;
+      return;
+    }
+    timer.classList.add("show");
+    const total = windowTotal || remaining;
+    const frac = Math.max(0, Math.min(1, remaining / total));
+    ring.style.strokeDashoffset = (RING_CIRCUMFERENCE * (1 - frac)).toFixed(1);
+    tnum.textContent = Math.ceil(remaining);
+    timer.classList.toggle("low", remaining <= 5);
+  }
+  setInterval(tickTimer, 100);
+
+  async function poll() {
+    try {
+      const res = await fetch("/state", { cache: "no-store" });
+      const s = await res.json();
+      renderLeaderboard(s.leaderboard);
+      renderQuestion(s.question);
+
+      // Track when a new window starts so the ring knows its full duration.
+      if (s.window_ends_at && s.window_ends_at !== windowEndsAt) {
+        const fresh = s.window_ends_at - (Date.now() / 1000);
+        if (fresh > 0) windowTotal = fresh;
+      }
+      windowEndsAt = s.window_ends_at || null;
+    } catch (e) {
+      // Server not up yet or mid-restart: keep the last frame, try again.
+    }
+  }
+  poll();
+  setInterval(poll, POLL_MS);
+</script>
+</body>
+</html>
