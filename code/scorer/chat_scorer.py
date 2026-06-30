@@ -241,14 +241,9 @@ def main():
     poller = threading.Thread(target=scorer.poll_loop, daemon=True)
     poller.start()
 
-    print("\nReady. Press Enter to open each question, or 'q' then Enter to quit.")
-    idx = 0
-    while idx < len(questions):
-        cmd = input(f"\n[Enter] open Q{questions[idx].get('number')}  >  ")
-        if cmd.strip().lower() == "q":
-            break
-        scorer.open_question(questions[idx])
-        idx += 1
+    input("\nPress Enter the moment the video starts to sync the show  >  ")
+    for q in questions:
+        scorer.open_question(q)  # blocks for window_seconds, then auto-advances
 
     scorer.running = False
     print("\nFinal leaderboard:")
