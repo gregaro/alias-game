@@ -81,7 +81,7 @@ class Scorer:
 
     # ----- leaderboard rendering -----
 
-    def leaderboard(self, top=10):
+    def leaderboard(self, top=5):
         rows = [{"name": self.names.get(cid, "?"), "score": s}
                 for cid, s in self.scores.items()]
         rows.sort(key=lambda r: r["score"], reverse=True)
