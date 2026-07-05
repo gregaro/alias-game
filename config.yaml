@@ -1,0 +1,27 @@
+# Define an agent by adding a block here. No code changes needed.
+# Per-agent model routing lets you spend money where quality matters
+# (hints) and save it where volume is high (scoring).
+agents:
+  hint_generator:
+    provider: anthropic          # anthropic | openai
+    model: claude-sonnet-4-6
+    temperature: 0.8
+    max_tokens: 400
+    skill: hint_generation       # -> skills/hint_generation/SKILL.md
+    output: json                 # json | text
+
+  difficulty_monitor:
+    provider: openai             # cheap model for high-volume scoring
+    model: gpt-4o-mini
+    temperature: 0.2
+    max_tokens: 300
+    skill: difficulty_tuning
+    output: json
+
+  trend_researcher:
+    provider: anthropic
+    model: claude-sonnet-4-6
+    temperature: 0.5
+    max_tokens: 500
+    skill: trend_research
+    output: json
