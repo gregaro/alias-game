@@ -73,7 +73,7 @@ code/
 On the Pi, from the repo root (`alias-game/`):
 
 ```
-pip install flask google-api-python-client google-auth-oauthlib
+pip install -r requirements.txt
 python code/overlay/server.py       # overlay server, binds 0.0.0.0:8080
 python code/scorer/chat_scorer.py   # scorer (broadcast must be LIVE, not just scheduled)
 ```
@@ -81,9 +81,27 @@ python code/scorer/chat_scorer.py   # scorer (broadcast must be LIVE, not just s
 Agents (need `ANTHROPIC_API_KEY`/`OPENAI_API_KEY` in `.env` at repo root):
 
 ```
-pip install pyyaml python-dotenv langchain-anthropic langchain-openai
 python code/agents/main.py          # demo: generate hints for one word
 ```
+
+## Setup on a new machine
+
+Only two gitignored files carry real secrets and must be copied by hand
+(`scp` over the LAN — never commit them, never paste them through chat/cloud
+apps). Everything else is recreated automatically: `token.json` via the
+browser auth flow, `state.json` / `alias_game.db` / `__pycache__` at runtime.
+
+```
+git clone https://github.com/gregaro/alias-game.git && cd alias-game
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env                # then fill in the API keys, or scp .env from the Pi
+scp <user>@<pi-ip>:alias-game/code/secrets/client_secret.json code/secrets/
+python code/agents/main.py          # smoke test
+```
+
+Note: the OBS Mac needs none of this to run the show — its only job is a
+Browser Source pointed at the Pi. This setup is for development.
 
 OBS (Mac): Browser Source -> `http://<pi-lan-ip>:8080`, 1920x1080, layered
 ABOVE the avatar Media Source.

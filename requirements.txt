@@ -1,0 +1,10 @@
+# Show infrastructure (overlay server + chat scorer)
+flask
+google-api-python-client
+google-auth-oauthlib
+
+# Agents (code/agents/)
+pyyaml
+python-dotenv
+langchain-anthropic
+langchain-openai
