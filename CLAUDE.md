@@ -29,6 +29,18 @@ move together without code edits.
 
 ```
 code/
+├── agents/
+│   ├── main.py         Demo entry point: runs hint_generator once for a word.
+│   ├── orchestrator.py Loads config.yaml, spawns all configured agents, runs
+│   │                   them by name (manual orchestration — you decide when).
+│   ├── agent.py        Agent = config block + SKILL.md system prompt +
+│   │                   provider-agnostic LangChain model (Anthropic/OpenAI).
+│   ├── db.py           SQLite shared agent state. Creates alias_game.db here
+│   │                   on first run — gitignored runtime artifact.
+│   ├── config.yaml     Per-agent provider/model/temperature/skill routing.
+│   │                   Add an agent by adding a block; no code changes.
+│   └── skills/         One SKILL.md per agent role: hint_generation,
+│                       difficulty_tuning, trend_research.
 ├── overlay/
 │   ├── server.py       Flask overlay server. Serves overlay.html at /, live
 │   │                   state at /state, a test control at /timer/<seconds>
@@ -64,6 +76,13 @@ On the Pi, from the repo root (`alias-game/`):
 pip install flask google-api-python-client google-auth-oauthlib
 python code/overlay/server.py       # overlay server, binds 0.0.0.0:8080
 python code/scorer/chat_scorer.py   # scorer (broadcast must be LIVE, not just scheduled)
+```
+
+Agents (need `ANTHROPIC_API_KEY`/`OPENAI_API_KEY` in `.env` at repo root):
+
+```
+pip install pyyaml python-dotenv langchain-anthropic langchain-openai
+python code/agents/main.py          # demo: generate hints for one word
 ```
 
 OBS (Mac): Browser Source -> `http://<pi-lan-ip>:8080`, 1920x1080, layered
@@ -118,5 +137,6 @@ run an end-to-end dress rehearsal for friends on an unlisted stream.
 
 Python, standard library where reasonable. Keep modules small and readable with
 comments explaining *why*. This is a solo for-fun build — prefer simple,
-debuggable code over abstraction. Don't add databases, Redis, or a web app
-unless the show proves fun first (those are explicit backlog items).
+debuggable code over abstraction. Don't add Redis or a web app unless the show
+proves fun first (those are explicit backlog items). The one database is the
+agents' small SQLite state file (`code/agents/db.py`) — keep it that way.
