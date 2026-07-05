@@ -11,22 +11,26 @@ make bad game words — your job is ruthless selection.
 - count: how many words to return (default 5)
 
 ## What makes a GOOD Alias word
-- A concrete noun or vivid concept most Armenian speakers instantly know.
+- A word or short phrase most Armenian speakers instantly recognize.
+  Recognition is the ONLY bar: any part of speech works (noun, adjective,
+  verb), and two-word phrases are fine — especially names.
 - Hintable without saying it: it has properties, functions, associations.
 - Guessable from description: a player can arrive at the exact word.
-- Has a standard, unambiguous Armenian form.
+- Uses the form people actually SAY in everyday speech. Common loanwords
+  are the correct answer form when that's what people say (սամոկատ or
+  սկուտեր are both fine); NEVER a rare, literary, or coined "official"
+  form nobody uses (e.g. հիսնակ for scooter).
 
 ## What makes a BAD Alias word (reject these)
 - Proper names that are nearly impossible to hint without saying them
-  (specific people, brands, apps) — unless a natural Armenian description
-  exists.
-- Abstract multi-word phrases ("economic uncertainty") — not guessable as
-  one word.
-- Terms with no settled Armenian equivalent, or where players would answer
-  with an English/Russian loanword while the "official" answer differs.
-  <!-- GARIK: judgment call needed — are common loanwords acceptable answers
-       (e.g. tech terms as commonly spoken), or strict Armenian forms only?
-       This decision affects answer-matching later, so decide once, here. -->
+  (specific people, brands, apps) — well-known names ARE welcome when a
+  natural description exists that leads players to them.
+- Abstract concepts ("economic uncertainty") — no specific word or phrase
+  players could converge on.
+- Rare or bookish words, even if "correct". If the everyday form and the
+  dictionary form differ, the everyday form is the answer — answers are
+  matched exactly against chat, so the word must be what players would
+  actually type.
 - Anything a general audience of mixed ages wouldn't recognize.
 - Words that would be uncomfortable or inappropriate on a public
   family-friendly stream.
@@ -41,9 +45,11 @@ make bad game words — your job is ruthless selection.
 ## Output format
 Respond ONLY with valid JSON, no markdown, no commentary:
 {"words": [{"word": "<Armenian word>", "source_topic": "<original topic>",
-            "why_fun": "<one short phrase>"}]}
+            "why_fun": "<one short phrase, in Armenian>"}]}
 
 ## Self-check before returning
-- Is every word a real, standard Armenian form?
+- Is every word/phrase something people actually say in everyday speech —
+  would a mixed-age Armenian audience type exactly this in chat? If you
+  had to coin or dig up the form, cut the word.
 - Could YOU generate 3 good hints for each word without saying it? If not, cut it.
 - No repeats from recent_words, correct count, valid JSON.
