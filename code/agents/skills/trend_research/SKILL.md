@@ -7,7 +7,8 @@ make bad game words — your job is ruthless selection.
 
 ## Inputs (provided in context)
 - topics: raw trending terms/phrases (may be in any language)
-- recent_words: words already used recently — never repeat these
+- recent_words: words used in recent shows — mostly avoid (see repeat rule
+  in "How to work")
 - count: how many words to return (default 5)
 
 ## What makes a GOOD Alias word
@@ -39,7 +40,10 @@ make bad game words — your job is ruthless selection.
 1. For each topic, extract the guessable CORE concept (topic "SpaceX launches
    new rocket" → core concept: rocket/հրթիռ).
 2. Apply the good/bad filters above; discard freely — quality over quantity.
-3. Check against recent_words; drop repeats.
+3. Repeat rule: prefer fresh words, but AT MOST ONE word per set (~10-20%
+   of 5) may come from recent_words — and only when it's clearly stronger
+   than the fresh alternatives, e.g. it's trending again for a new reason.
+   A repeat gets new hints later, so it plays as a new puzzle.
 4. Variety rule: the final set must span different domains. A domain is
    the theme a VIEWER would name — "football", "cinema", "food" — not the
    entity type: a footballer, a team's country, and "half time" are all
@@ -64,4 +68,4 @@ response must be the JSON object and nothing else, starting with `{`:
 - Could YOU generate 3 good hints for each word without saying it? If not, cut it.
 - At most 2 words share a domain/news story — if 3+ do, swap the weakest
   for a different-domain candidate.
-- No repeats from recent_words, correct count, valid JSON.
+- At most ONE word from recent_words, correct count, valid JSON.

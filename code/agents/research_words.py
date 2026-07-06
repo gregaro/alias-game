@@ -18,8 +18,11 @@ from orchestrator import Orchestrator
 WORD_COUNT = 5
 
 
-def recent_words(max_runs: int = 10) -> list[str]:
-    """Words from past research runs, so shows don't repeat themselves."""
+def recent_words(max_runs: int = 3) -> list[str]:
+    """Words from the last few research runs (one run per show, so this is
+    a ~3-show window). Older words are fair game again — with fresh hints
+    a reused word is a different puzzle, and an all-time ban starves the
+    pool. The skill additionally allows ~1 repeat even inside the window."""
     words: list[str] = []
     for run in db.all_states("trend_researcher", "last_output", limit=max_runs):
         for entry in run.get("words", []):
