@@ -34,8 +34,10 @@ code/
 │   ├── research_words.py  One command per show: fetch trends -> LLM editor ->
 │   │                   playable words. Pulls recent_words from the DB so
 │   │                   shows don't repeat themselves.
-│   ├── fetch_topics.py Google Trends RSS fetcher (stdlib, no API key).
-│   │                   geo=AM first, US fallback. Run alone to eyeball topics.
+│   ├── fetch_topics.py Topic fetchers: Google Trends RSS (geo=AM + US),
+│   │                   hy-Wikipedia top reads, YouTube trending in AM
+│   │                   (reuses the scorer's OAuth). A failed source is a
+│   │                   warning, not an error. Run alone to eyeball feeds.
 │   ├── orchestrator.py Loads config.yaml, spawns all configured agents, runs
 │   │                   them by name (manual orchestration — you decide when).
 │   ├── agent.py        Agent = config block + SKILL.md system prompt +
