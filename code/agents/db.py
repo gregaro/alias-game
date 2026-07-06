@@ -35,6 +35,18 @@ def save_state(agent: str, key: str, value) -> None:
         )
 
 
+def all_states(agent: str, key: str, limit: int = 10) -> list:
+    """Newest-first saved values. ORDER BY id: created_at only has
+    second resolution, so same-second runs would sort ambiguously."""
+    with _conn() as conn:
+        rows = conn.execute(
+            "SELECT value FROM agent_state WHERE agent=? AND key=? "
+            "ORDER BY id DESC LIMIT ?",
+            (agent, key, limit),
+        ).fetchall()
+    return [json.loads(row["value"]) for row in rows]
+
+
 def latest_state(agent: str, key: str):
     with _conn() as conn:
         row = conn.execute(

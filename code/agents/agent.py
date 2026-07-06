@@ -52,9 +52,14 @@ class Agent:
 
     @staticmethod
     def _parse_json(raw: str):
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-            raw = raw.strip()
-        return json.loads(raw)
+        # Models sometimes reason out loud around the JSON despite the
+        # skills saying not to; recover the object instead of failing.
+        if "```" in raw:
+            for block in raw.split("```")[1::2]:  # inside-fence chunks
+                block = block.strip().removeprefix("json").strip()
+                if block.startswith(("{", "[")):
+                    return json.loads(block)
+        start, end = raw.find("{"), raw.rfind("}")
+        if start != -1 and end > start:
+            return json.loads(raw[start : end + 1])
+        return json.loads(raw)  # nothing JSON-like: raise the real error

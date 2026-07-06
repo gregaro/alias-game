@@ -31,6 +31,11 @@ move together without code edits.
 code/
 ├── agents/
 │   ├── main.py         Demo entry point: runs hint_generator once for a word.
+│   ├── research_words.py  One command per show: fetch trends -> LLM editor ->
+│   │                   playable words. Pulls recent_words from the DB so
+│   │                   shows don't repeat themselves.
+│   ├── fetch_topics.py Google Trends RSS fetcher (stdlib, no API key).
+│   │                   geo=AM first, US fallback. Run alone to eyeball topics.
 │   ├── orchestrator.py Loads config.yaml, spawns all configured agents, runs
 │   │                   them by name (manual orchestration — you decide when).
 │   ├── agent.py        Agent = config block + SKILL.md system prompt +

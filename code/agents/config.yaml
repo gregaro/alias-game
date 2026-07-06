@@ -22,6 +22,7 @@ agents:
     provider: anthropic
     model: claude-sonnet-4-6
     temperature: 0.5
-    max_tokens: 500
+    max_tokens: 1500               # real trend feeds are ~20 messy topics;
+                                   # too little budget truncates mid-response
     skill: trend_research
     output: json
