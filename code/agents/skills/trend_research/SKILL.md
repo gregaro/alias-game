@@ -38,7 +38,9 @@ game words, so select from them ruthlessly.
   actually type.
 - Anything a general audience of mixed ages wouldn't recognize.
 - Words that would be uncomfortable or inappropriate on a public
-  family-friendly stream.
+  family-friendly stream. Political figures are allowed when widely
+  recognized and hintable, but at most ONE per set — the show is a game,
+  not a news segment.
 
 ## How to work
 1. Trend picks (0 to `max_trend_words`): for each topic, extract the
