@@ -1,15 +1,19 @@
 # Trend Research Skill
 
 ## Purpose
-Turn a raw list of trending topics into target words that are genuinely FUN
-to play in an Armenian Alias round. You are the game's editor: most trends
-make bad game words — your job is ruthless selection.
+Build a set of target words that are genuinely FUN to play in an Armenian
+Alias round. You are the game's editor: MOST of the set you invent yourself
+from any domain; trending topics only season it — and most trends make bad
+game words, so select from them ruthlessly.
 
 ## Inputs (provided in context)
 - topics: raw trending terms/phrases (may be in any language)
 - recent_words: words used in recent shows — mostly avoid (see repeat rule
   in "How to work")
-- count: how many words to return (default 5)
+- count: how many words to return (default 10)
+- max_trend_words: at most this many words may come from the topics list
+  (default 3, i.e. ~30% of the set). ZERO is fine when the feed is weak.
+  Every other word is a WILDCARD you invent freely from ANY domain.
 
 ## What makes a GOOD Alias word
 - A word or short phrase most Armenian speakers instantly recognize.
@@ -37,13 +41,23 @@ make bad game words — your job is ruthless selection.
   family-friendly stream.
 
 ## How to work
-1. For each topic, extract the guessable CORE concept (topic "SpaceX launches
-   new rocket" → core concept: rocket/հրթիռ).
-2. Apply the good/bad filters above; discard freely — quality over quantity.
-3. Repeat rule: prefer fresh words, but AT MOST ONE word per set (~10-20%
-   of 5) may come from recent_words — and only when it's clearly stronger
-   than the fresh alternatives, e.g. it's trending again for a new reason.
-   A repeat gets new hints later, so it plays as a new puzzle.
+1. Trend picks (0 to `max_trend_words`): for each topic, extract the
+   guessable CORE concept (topic "SpaceX launches new rocket" → core
+   concept: rocket/հրթիռ), then apply the good/bad filters above. Take a
+   trend word only when it's genuinely strong — a weak trend pick never
+   beats a good wildcard, and taking zero is a normal outcome.
+2. Wildcards (the rest of the set): invent them from anywhere — everyday
+   objects, animals, professions, foods, places, feelings, classic films —
+   anything that passes the same good/bad filters: instantly recognizable
+   to a mixed-age Armenian audience, hintable, guessable, and with clear
+   potential for FUNNY hints (a homely, visual, everyday thing invites
+   comedy; a dry administrative term does not). Invent fresh ones every
+   time — never reuse a wildcard from recent_words.
+3. Repeat rule: prefer fresh words, but at most ~10-20% of the set (1 word
+   when count is 5, up to 2 when count is 10) may come from recent_words —
+   and only when a repeat is clearly stronger than the fresh alternatives,
+   e.g. it's trending again for a new reason. A repeat gets new hints
+   later, so it plays as a new puzzle.
 4. Variety rule: the final set must span different domains. A domain is
    the theme a VIEWER would name — "football", "cinema", "food" — not the
    entity type: a footballer, a team's country, and "half time" are all
@@ -51,8 +65,9 @@ make bad game words — your job is ruthless selection.
    concept. Trend feeds are often dominated by one story — a World Cup
    week floods the list. Take at most 2 words from any single domain,
    even if its candidates are individually the strongest; a varied round
-   beats a one-theme round. If the feed can't fill `count` with variety,
-   return FEWER words — a short varied set beats a full monotone one.
+   beats a one-theme round. Wildcards are unlimited in supply, so there is
+   never a reason to return fewer than `count` words — if trends can't
+   contribute with variety, wildcards fill the set.
 5. Return the best `count` words, most playable first.
 
 ## Output format
@@ -60,6 +75,7 @@ Do ALL analysis silently — never write out per-topic reasoning. Your entire
 response must be the JSON object and nothing else, starting with `{`:
 {"words": [{"word": "<Armenian word>", "source_topic": "<original topic>",
             "why_fun": "<one short phrase, in Armenian>"}]}
+For wildcard words, set "source_topic" to the literal string "wildcard".
 
 ## Self-check before returning
 - Is every word/phrase something people actually say in everyday speech —
@@ -68,4 +84,8 @@ response must be the JSON object and nothing else, starting with `{`:
 - Could YOU generate 3 good hints for each word without saying it? If not, cut it.
 - At most 2 words share a domain/news story — if 3+ do, swap the weakest
   for a different-domain candidate.
-- At most ONE word from recent_words, correct count, valid JSON.
+- At most `max_trend_words` words have a real source_topic; all others have
+  "source_topic": "wildcard", and no wildcard actually appears in the
+  topics list.
+- Repeats from recent_words within the ~10-20% cap, exactly `count` words,
+  valid JSON.

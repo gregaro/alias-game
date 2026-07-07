@@ -15,7 +15,11 @@ import db
 from fetch_topics import fetch_all
 from orchestrator import Orchestrator
 
-WORD_COUNT = 5
+WORD_COUNT = 10
+# Trends season the set; they don't drive it. At most this many words may
+# come from the trends feed (0 is fine when the feed is weak) — the rest
+# are "wildcards" the editor invents freely from ANY domain.
+MAX_TREND_WORDS = 3
 
 
 def recent_words(max_runs: int = 3) -> list[str]:
@@ -47,8 +51,14 @@ def main():
     orch = Orchestrator()
     result = orch.run(
         "trend_researcher",
-        "Select the most playable Alias words from these trending topics.",
-        context={"topics": topics, "recent_words": avoid, "count": WORD_COUNT},
+        "Build the word set: mostly wildcard words of your own invention, "
+        "seasoned with at most a few strong picks from these trending topics.",
+        context={
+            "topics": topics,
+            "recent_words": avoid,
+            "count": WORD_COUNT,
+            "max_trend_words": MAX_TREND_WORDS,
+        },
     )
 
     print("\nSelected words:")
