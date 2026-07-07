@@ -25,6 +25,12 @@ game words, so select from them ruthlessly.
   are the correct answer form when that's what people say (սամոկատ or
   սկուտեր are both fine); NEVER a rare, literary, or coined "official"
   form nobody uses (e.g. հիսնակ for scooter).
+- SHORT enough to type fast: players type the answer live in chat, and
+  every extra word invites typos. One word beats two; three+ words is a
+  last resort for famous names with no shorter everyday form. When a long
+  topic has a short spoken form, the short form IS the word: «մունդիալ»
+  beats «ֆուտբոլի աշխարհի առաջնություն», «ընտրություններ» beats
+  «խորհրդարանական ընտրություններ».
 
 ## What makes a BAD Alias word (reject these)
 - Proper names that are nearly impossible to hint without saying them
@@ -45,16 +51,27 @@ game words, so select from them ruthlessly.
 ## How to work
 1. Trend picks (0 to `max_trend_words`): for each topic, extract the
    guessable CORE concept (topic "SpaceX launches new rocket" → core
-   concept: rocket/հրթիռ), then apply the good/bad filters above. Take a
+   concept: rocket/հրթիռ) in its shortest everyday form — you don't have
+   to keep the topic's own wording — then apply the good/bad filters
+   above. Take a
    trend word only when it's genuinely strong — a weak trend pick never
    beats a good wildcard, and taking zero is a normal outcome.
-2. Wildcards (the rest of the set): invent them from anywhere — everyday
-   objects, animals, professions, foods, places, feelings, classic films —
-   anything that passes the same good/bad filters: instantly recognizable
-   to a mixed-age Armenian audience, hintable, guessable, and with clear
-   potential for FUNNY hints (a homely, visual, everyday thing invites
-   comedy; a dry administrative term does not). Invent fresh ones every
-   time — never reuse a wildcard from recent_words.
+2. Wildcards (the rest of the set): invent them from anywhere. Draw on the
+   full palette of categories, not just objects:
+   - everyday objects, foods, animals, professions, feelings
+   - world-famous people, living or historical (Ֆրեդի Մերկուրի, Դոնալդ
+     Թրամփ, Չառլի Չապլին) and famous Armenians (Թումանյան, Շառլ Ազնավուր)
+   - geography: capitals, countries, rivers, mountains, famous landmarks
+     (Փարիզ, Ամազոն, Արարատ, Էյֆելյան աշտարակ)
+   - famous films, cartoons, fairy-tale characters (Տիտանիկ, Կարլսոն)
+   - actions and qualities — verbs and adjectives (փռշտալ, ժլատ); aim for
+     a couple per set, they make the funniest rounds
+   Anything goes if it passes the same good/bad filters: instantly
+   recognizable to a mixed-age Armenian audience, hintable, guessable,
+   and with clear potential for FUNNY hints (a homely, visual, everyday
+   thing invites comedy; a dry administrative term does not). Spread the
+   set across categories — don't let one category dominate. Invent fresh
+   ones every time — never reuse a wildcard from recent_words.
 3. Repeat rule: prefer fresh words, but at most ~10-20% of the set (1 word
    when count is 5, up to 2 when count is 10) may come from recent_words —
    and only when a repeat is clearly stronger than the fresh alternatives,
@@ -81,8 +98,9 @@ For wildcard words, set "source_topic" to the literal string "wildcard".
 
 ## Self-check before returning
 - Is every word/phrase something people actually say in everyday speech —
-  would a mixed-age Armenian audience type exactly this in chat? If you
-  had to coin or dig up the form, cut the word.
+  would a mixed-age Armenian audience type exactly this in chat, quickly
+  and without typos? If a shorter everyday form of the same thing exists,
+  swap to it; if you had to coin or dig up the form, cut the word.
 - Could YOU generate 3 good hints for each word without saying it? If not, cut it.
 - At most 2 words share a domain/news story — if 3+ do, swap the weakest
   for a different-domain candidate.
