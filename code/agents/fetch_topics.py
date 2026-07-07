@@ -6,11 +6,14 @@ feed is enough to run the show. Titles come back raw and messy (lowercase
 names, mixed languages, emoji) — that's fine, the trend_research skill's
 job is to extract the guessable core concept from noisy input.
 
-Sources:
-- Google Trends RSS       what people SEARCH  (free, no key)
-- Wikipedia top reads     what people READ    (Wikimedia API, free, no key;
-                          hy edition = a specifically Armenian signal)
-- YouTube trending in AM  what people WATCH   (reuses the scorer's OAuth)
+Sources (time windows differ because that's all each API offers):
+- Google Trends RSS       what people SEARCH today   (free, no key; the RSS
+                          has no weekly view — this is the day-of signal)
+- Wikipedia top reads     what people READ this week (Wikimedia API, free,
+                          no key; hy edition = a specifically Armenian
+                          signal; 7 daily lists aggregated by total views)
+- YouTube trending in AM  what people WATCH          (reuses the scorer's
+                          OAuth; the chart already spans several days)
 """
 import json
 import sys
@@ -48,30 +51,34 @@ def fetch_google_trends(geos=TREND_GEOS) -> list[str]:
     return titles
 
 
-def fetch_wikipedia(lang: str = "hy", limit: int = 15) -> list[str]:
-    """Yesterday's most-read articles. Article titles are cleaner concepts
-    than search queries ("Վարդավառ", not "when is vardavar 2026")."""
-    for days_back in (1, 2):  # yesterday's data can lag; fall back one day
+def fetch_wikipedia(lang: str = "hy", days: int = 7, limit: int = 15) -> list[str]:
+    """Most-read articles over the last `days` days, ranked by total views.
+    One day's list swings with a single news cycle; the weekly aggregate
+    surfaces what actually held people's attention. Article titles are
+    cleaner concepts than search queries ("Վարդավառ", not "when is
+    vardavar 2026")."""
+    views: dict[str, int] = {}
+    fetched_days = 0
+    for days_back in range(1, days + 1):
         day = datetime.now(timezone.utc) - timedelta(days=days_back)
         url = WIKI_TOP.format(lang=lang, y=day.year, m=day.month, d=day.day)
         try:
             data = json.loads(_get(url))
-            break
         except urllib.error.HTTPError as exc:
-            if exc.code != 404 or days_back == 2:
-                raise
-    articles = data["items"][0]["articles"]
-    titles = []
-    for entry in articles:
-        title = entry["article"].replace("_", " ")
-        # ":" filters non-article namespaces (Սպասարկող:, Կատեգորիա:, ...);
-        # the main page tops every day's list and means nothing.
-        if ":" in title or title in ("Գլխավոր էջ", "Main Page"):
-            continue
-        titles.append(title)
-        if len(titles) == limit:
-            break
-    return titles
+            if exc.code == 404:  # the newest day's data can lag; skip it
+                continue
+            raise
+        fetched_days += 1
+        for entry in data["items"][0]["articles"]:
+            title = entry["article"].replace("_", " ")
+            # ":" filters non-article namespaces (Սպասարկող:, Կատեգորիա:, ...);
+            # the main page tops every day's list and means nothing.
+            if ":" in title or title in ("Գլխավոր էջ", "Main Page"):
+                continue
+            views[title] = views.get(title, 0) + entry["views"]
+    if not fetched_days:
+        raise RuntimeError(f"no pageview data for any of the last {days} days")
+    return sorted(views, key=views.get, reverse=True)[:limit]
 
 
 def fetch_youtube_trending(region: str = "AM", limit: int = 15) -> list[str]:
