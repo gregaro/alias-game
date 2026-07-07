@@ -64,14 +64,16 @@ game words, so select from them ruthlessly.
    - geography: capitals, countries, rivers, mountains, famous landmarks
      (Փարիզ, Ամազոն, Արարատ, Էյֆելյան աշտարակ)
    - famous films, cartoons, fairy-tale characters (Տիտանիկ, Կարլսոն)
-   - actions and qualities — verbs and adjectives (փռշտալ, ժլատ); aim for
-     a couple per set, they make the funniest rounds
+   - actions and qualities — verbs and adjectives; aim for a couple per
+     set, they make the funniest rounds
    Anything goes if it passes the same good/bad filters: instantly
    recognizable to a mixed-age Armenian audience, hintable, guessable,
    and with clear potential for FUNNY hints (a homely, visual, everyday
    thing invites comedy; a dry administrative term does not). Spread the
    set across categories — don't let one category dominate. Invent fresh
-   ones every time — never reuse a wildcard from recent_words.
+   ones every time — never reuse a wildcard from recent_words, and NEVER
+   pick the example words written in this document (Չառլի Չապլին, Արարատ,
+   փռշտալ, ...): they are illustrations of categories, not candidates.
 3. Repeat rule: prefer fresh words, but at most ~10-20% of the set (1 word
    when count is 5, up to 2 when count is 10) may come from recent_words —
    and only when a repeat is clearly stronger than the fresh alternatives,
