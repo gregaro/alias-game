@@ -59,21 +59,17 @@ game words, so select from them ruthlessly.
 2. Wildcards (the rest of the set): invent them from anywhere. Draw on the
    full palette of categories, not just objects:
    - everyday objects, foods, animals, professions, feelings
-   - world-famous people, living or historical (Ֆրեդի Մերկուրի, Դոնալդ
-     Թրամփ, Չառլի Չապլին) and famous Armenians (Թումանյան, Շառլ Ազնավուր)
+   - world-famous people, living or historical, and famous Armenians
    - geography: capitals, countries, rivers, mountains, famous landmarks
-     (Փարիզ, Ամազոն, Արարատ, Էյֆելյան աշտարակ)
-   - famous films, cartoons, fairy-tale characters (Տիտանիկ, Կարլսոն)
-   - actions and qualities — verbs and adjectives; aim for a couple per
-     set, they make the funniest rounds
+   - famous films, cartoons, fairy-tale characters
+   - actions and qualities — verbs and adjectives; include at least one,
+     they make the funniest rounds
    Anything goes if it passes the same good/bad filters: instantly
    recognizable to a mixed-age Armenian audience, hintable, guessable,
    and with clear potential for FUNNY hints (a homely, visual, everyday
    thing invites comedy; a dry administrative term does not). Spread the
    set across categories — don't let one category dominate. Invent fresh
-   ones every time — never reuse a wildcard from recent_words, and NEVER
-   pick the example words written in this document (Չառլի Չապլին, Արարատ,
-   փռշտալ, ...): they are illustrations of categories, not candidates.
+   ones every time — never reuse a wildcard from recent_words.
 3. Repeat rule: prefer fresh words, but at most ~10-20% of the set (1 word
    when count is 5, up to 2 when count is 10) may come from recent_words —
    and only when a repeat is clearly stronger than the fresh alternatives,
