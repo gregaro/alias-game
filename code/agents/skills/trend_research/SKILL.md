@@ -95,6 +95,13 @@ response must be the JSON object and nothing else, starting with `{`:
 For wildcard words, set "source_topic" to the literal string "wildcard".
 
 ## Self-check before returning
+- Existence test, for EVERY word: silently state (a) its plain meaning in
+  one phrase and (b) one ordinary sentence you have actually heard or read
+  it used in. If either is vague or you find yourself inventing the
+  meaning, the word does not exist for the audience — cut it, no matter
+  how plausible it sounds. Invented words (հիսնակ, կռզու) have slipped
+  through before; a "funny-sounding" word with no concrete meaning behind
+  it is the signature of this failure.
 - Is every word/phrase something people actually say in everyday speech —
   would a mixed-age Armenian audience type exactly this in chat, quickly
   and without typos? If a shorter everyday form of the same thing exists,
