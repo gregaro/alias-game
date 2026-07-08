@@ -48,10 +48,20 @@ def all_states(agent: str, key: str, limit: int = 10) -> list:
 
 
 def latest_state(agent: str, key: str):
+    # ORDER BY id, not created_at: timestamps have second resolution, so
+    # two same-second saves would make "latest" ambiguous.
     with _conn() as conn:
         row = conn.execute(
             "SELECT value FROM agent_state WHERE agent=? AND key=? "
-            "ORDER BY created_at DESC LIMIT 1",
+            "ORDER BY id DESC LIMIT 1",
             (agent, key),
         ).fetchone()
     return json.loads(row["value"]) if row else None
+
+
+if __name__ == "__main__":
+    # Standalone setup: create/upgrade the schema on a fresh machine.
+    # Everything in init_db is idempotent (IF NOT EXISTS), so rerunning
+    # after a schema change is always safe — future migrations go there.
+    init_db()
+    print(f"DB ready at {DB_PATH}")

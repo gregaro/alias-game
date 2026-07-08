@@ -33,7 +33,11 @@ code/
 │   ├── main.py         Demo entry point: runs hint_generator once for a word.
 │   ├── research_words.py  One command per show: fetch trends -> LLM editor ->
 │   │                   playable words. Pulls recent_words from the DB so
-│   │                   shows don't repeat themselves.
+│   │                   shows don't repeat themselves (unless rehearsal_mode
+│   │                   is on in config.yaml).
+│   ├── generate_hints.py  Stage two: reads the latest word set from the DB,
+│   │                   runs hint_generator per word, saves show-ready
+│   │                   [{word, hints}] back to the DB.
 │   ├── fetch_topics.py Topic fetchers: Google Trends RSS (geo=AM + US),
 │   │                   hy-Wikipedia top reads, YouTube trending in AM
 │   │                   (reuses the scorer's OAuth). A failed source is a
@@ -43,7 +47,9 @@ code/
 │   ├── agent.py        Agent = config block + SKILL.md system prompt +
 │   │                   provider-agnostic LangChain model (Anthropic/OpenAI).
 │   ├── db.py           SQLite shared agent state. Creates alias_game.db here
-│   │                   on first run — gitignored runtime artifact.
+│   │                   on first run — gitignored runtime artifact. Run
+│   │                   directly (python db.py) to set up/upgrade the schema
+│   │                   on a fresh machine; init_db is idempotent.
 │   ├── config.yaml     Per-agent provider/model/temperature/skill routing.
 │   │                   Add an agent by adding a block; no code changes.
 │   └── skills/         One SKILL.md per agent role: hint_generation,
@@ -89,7 +95,9 @@ Agents (need `ANTHROPIC_API_KEY`/`OPENAI_API_KEY`/`OPENROUTER_API_KEY` in
 `.env` at repo root — OpenRouter serves the Gemini-backed trend researcher):
 
 ```
-python code/agents/main.py          # demo: generate hints for one word
+python code/agents/main.py           # demo: generate hints for one word
+python code/agents/research_words.py # per show, stage 1: trends -> word set
+python code/agents/generate_hints.py # per show, stage 2: word set -> hints
 ```
 
 ## Setup on a new machine
