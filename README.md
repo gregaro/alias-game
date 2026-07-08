@@ -60,12 +60,13 @@ Content is produced by small, config-driven agents (`code/agents/`). Each agent 
 YAML block (provider, model, temperature, token budget) plus a `SKILL.md` system prompt —
 adding an agent requires no code changes. Agents share state through a small SQLite DB.
 
-**One command per stage, three stages per show:**
+**One command per stage, four stages per show:**
 
 ```
-python code/agents/research_words.py      # stage 1: live trends -> 10 playable words
-python code/agents/generate_hints.py      # stage 2: 3 hints per word, show-ready
-python code/agents/generate_questions.py  # stage 3: hints -> questions.json (no LLM)
+python code/agents/research_words.py       # stage 1: live trends -> 10 playable words
+python code/agents/generate_hints.py       # stage 2: 3 hints per word, show-ready
+python code/agents/generate_questions.py   # stage 3: hints -> questions.json (no LLM)
+python code/agents/generate_show_script.py # stage 4: hints -> the episode clip script
 ```
 
 - **`trend_researcher`** fetches ~50 live topics (Google Trends RSS for Armenia + US,
@@ -84,6 +85,13 @@ python code/agents/generate_questions.py  # stage 3: hints -> questions.json (no
 - **Stage 3 is plain code, no LLM:** it writes the reviewed hints into
   `questions.json` for the scorer, keeping existing scoring settings. Accepted-answer
   variants (spellings, transliterations) still get a human pass before the show.
+- **`show_scripter`** (stage 4) writes the host's frame around the hints — episode
+  intro with the rules, a spoiler-free lead-in before each word, a reveal line after
+  each answer window (often calling back to a hint's joke), and the outro — in the
+  same persona, so the episode sounds like one person talking. The output,
+  `show_script.txt`, interleaves frame + hints with `[PAUSE]`/`[WINDOW]` markers:
+  it's the text that goes to TTS clip by clip. The generator validates that the frame
+  covers every word in order and that no lead-in leaks a target word.
 
 Model routing is per-agent and provider-agnostic (Anthropic / OpenAI / any model on
 OpenRouter). Current lineup after side-by-side A/B tests on real Armenian output:
@@ -116,7 +124,8 @@ code/
 │                trend fetchers, and the two per-show pipeline commands
 ├── overlay/     Flask server + transparent 1920x1080 overlay page (leaderboard,
 │                question lower-third, countdown ring) polled by OBS
-├── questions/   questions.json — answer windows, points decay schedule, questions
+├── questions/   questions.json (answer windows, points decay, questions) and the
+│                per-episode show_script.txt/.json for TTS recording
 ├── scorer/      YouTube auth (OAuth + token cache), chat poller/scorer, Armenian
 │                answer normalization
 └── secrets/     gitignored: OAuth client + cached token
@@ -131,7 +140,7 @@ pip install -r requirements.txt
 cp .env.example .env   # add ANTHROPIC_API_KEY / OPENAI_API_KEY / OPENROUTER_API_KEY
 ```
 
-Content pipeline (any machine): the two stage commands above.
+Content pipeline (any machine): the stage commands above.
 Show day (Pi): `python code/overlay/server.py` and `python code/scorer/chat_scorer.py`
 (broadcast must be live, not just scheduled). OBS (Mac): add a Browser Source pointed
 at `http://<pi-ip>:8080`, 1920×1080, layered above the host video.
@@ -141,7 +150,8 @@ at `http://<pi-ip>:8080`, 1920×1080, layered above the host video.
 - [x] Accounts, OAuth, test stream
 - [x] Live overlay (leaderboard, question card, countdown) as OBS Browser Source
 - [x] Chat reader + scorer with speed decay and Armenian answer matching
-- [x] Agent pipeline: trends → words → hints, with model A/B testing and fallbacks
+- [x] Agent pipeline: trends → words → hints → questions + clip script, with model
+      A/B testing and fallbacks
 - [x] First avatar clip (TTS → talking-head video)
 - [ ] Generate a full episode's clips; dress rehearsal on an unlisted stream
 - [ ] First public episode
