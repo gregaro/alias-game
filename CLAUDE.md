@@ -85,7 +85,8 @@ python code/overlay/server.py       # overlay server, binds 0.0.0.0:8080
 python code/scorer/chat_scorer.py   # scorer (broadcast must be LIVE, not just scheduled)
 ```
 
-Agents (need `ANTHROPIC_API_KEY`/`OPENAI_API_KEY` in `.env` at repo root):
+Agents (need `ANTHROPIC_API_KEY`/`OPENAI_API_KEY`/`OPENROUTER_API_KEY` in
+`.env` at repo root — OpenRouter serves the Gemini-backed trend researcher):
 
 ```
 python code/agents/main.py          # demo: generate hints for one word

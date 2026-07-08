@@ -1,5 +1,6 @@
 """An Agent = a config block + its skill file + a provider-agnostic model."""
 import json
+import os
 from pathlib import Path
 
 from langchain_anthropic import ChatAnthropic
@@ -20,6 +21,14 @@ def build_model(cfg: dict):
         return ChatAnthropic(**common)
     if provider == "openai":
         return ChatOpenAI(**common)
+    if provider == "openrouter":
+        # One key, every vendor: OpenRouter speaks the OpenAI wire protocol,
+        # so model slugs like "google/gemini-..." work through ChatOpenAI.
+        return ChatOpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=os.environ["OPENROUTER_API_KEY"],
+            **common,
+        )
     raise ValueError(f"Unknown provider: {provider!r}")
 
 

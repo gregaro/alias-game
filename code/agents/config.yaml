@@ -1,3 +1,8 @@
+# Rehearsal mode: every run is a throwaway test, so recent words are NOT
+# blocked between runs. TURN THIS OFF (false) before the first real show,
+# or consecutive shows may repeat the same words.
+rehearsal_mode: true
+
 # Define an agent by adding a block here. No code changes needed.
 # Per-agent model routing lets you spend money where quality matters
 # (hints) and save it where volume is high (scoring).
@@ -19,10 +24,12 @@ agents:
     output: json
 
   trend_researcher:
-    provider: anthropic
-    model: claude-sonnet-4-6
+    provider: openrouter           # A/B winner: best Armenian wildcards, only
+                                   # model that mines the Armenian YouTube feed
+    model: google/gemini-3.1-pro-preview   # preview slug — if it 404s one day,
+                                           # fall back to google/gemini-2.5-pro
     temperature: 0.5
-    max_tokens: 1500               # real trend feeds are ~20 messy topics;
-                                   # too little budget truncates mid-response
+    max_tokens: 8000               # reasoning models spend hidden tokens
+                                   # before the JSON; give generous headroom
     skill: trend_research
     output: json
