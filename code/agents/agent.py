@@ -13,9 +13,12 @@ def build_model(cfg: dict):
     """Provider-agnostic factory. Swap providers by editing config only."""
     common = dict(
         model=cfg["model"],
-        temperature=cfg.get("temperature", 0.7),
         max_tokens=cfg.get("max_tokens", 400),
     )
+    # The newest Anthropic models (Opus 4.8, Sonnet 5) reject sampling
+    # params outright — send temperature only when the config asks for it.
+    if "temperature" in cfg:
+        common["temperature"] = cfg["temperature"]
     provider = cfg["provider"]
     if provider == "anthropic":
         return ChatAnthropic(**common)
@@ -46,6 +49,10 @@ class Agent:
         self.cfg = cfg
         self.output = cfg.get("output", "text")
         self.model = build_model(cfg)
+        # Optional "fallback" config block: a second model tried when the
+        # primary fails (provider outage, truncated/unparseable JSON, ...).
+        fallback_cfg = cfg.get("fallback")
+        self.fallback_model = build_model(fallback_cfg) if fallback_cfg else None
         self.system_prompt = load_skill(cfg["skill"])
 
     def run(self, user_input: str, context: dict | None = None):
@@ -53,10 +60,18 @@ class Agent:
         if context:
             human += "\n\nContext:\n" + json.dumps(context, ensure_ascii=False)
 
-        response = self.model.invoke(
-            [("system", self.system_prompt), ("human", human)]
-        )
-        raw = response.content.strip()
+        messages = [("system", self.system_prompt), ("human", human)]
+        try:
+            return self._invoke(self.model, messages)
+        except Exception as e:
+            if self.fallback_model is None:
+                raise
+            print(f"[{self.name}] primary model failed ({type(e).__name__}: "
+                  f"{e}), retrying on fallback")
+            return self._invoke(self.fallback_model, messages)
+
+    def _invoke(self, model, messages):
+        raw = model.invoke(messages).content.strip()
         return self._parse_json(raw) if self.output == "json" else raw
 
     @staticmethod

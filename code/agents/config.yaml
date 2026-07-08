@@ -8,12 +8,17 @@ rehearsal_mode: true
 # (hints) and save it where volume is high (scoring).
 agents:
   hint_generator:
-    provider: anthropic          # anthropic | openai
-    model: claude-sonnet-4-6
+    provider: openrouter         # anthropic | openai | openrouter
+    model: google/gemini-3.1-pro-preview   # A/B winner: funniest hints, best
+                                           # facts on real people, street register
     temperature: 0.8
-    max_tokens: 400
+    max_tokens: 4000             # reasoning model: ~2K hidden tokens per call
     skill: hint_generation       # -> skills/hint_generation/SKILL.md
     output: json                 # json | text
+    fallback:                    # tried when the primary errors mid-show
+      provider: anthropic
+      model: claude-opus-4-8     # A/B runner-up; rejects temperature — omit it
+      max_tokens: 600
 
   difficulty_monitor:
     provider: openai             # cheap model for high-volume scoring
