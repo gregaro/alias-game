@@ -60,11 +60,12 @@ Content is produced by small, config-driven agents (`code/agents/`). Each agent 
 YAML block (provider, model, temperature, token budget) plus a `SKILL.md` system prompt —
 adding an agent requires no code changes. Agents share state through a small SQLite DB.
 
-**One command per show, two stages:**
+**One command per stage, three stages per show:**
 
 ```
-python code/agents/research_words.py   # stage 1: live trends -> 10 playable words
-python code/agents/generate_hints.py   # stage 2: 3 hints per word, show-ready
+python code/agents/research_words.py      # stage 1: live trends -> 10 playable words
+python code/agents/generate_hints.py      # stage 2: 3 hints per word, show-ready
+python code/agents/generate_questions.py  # stage 3: hints -> questions.json (no LLM)
 ```
 
 - **`trend_researcher`** fetches ~50 live topics (Google Trends RSS for Armenia + US,
@@ -80,6 +81,9 @@ python code/agents/generate_hints.py   # stage 2: 3 hints per word, show-ready
   word or its root, never translate it, no invented facts about real people.
 - **`difficulty_monitor`** (wired, not yet in the loop) will tune hint difficulty from
   live solve-time stats.
+- **Stage 3 is plain code, no LLM:** it writes the reviewed hints into
+  `questions.json` for the scorer, keeping existing scoring settings. Accepted-answer
+  variants (spellings, transliterations) still get a human pass before the show.
 
 Model routing is per-agent and provider-agnostic (Anthropic / OpenAI / any model on
 OpenRouter). Current lineup after side-by-side A/B tests on real Armenian output:
