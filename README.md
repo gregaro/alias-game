@@ -15,10 +15,12 @@ and the host's video is generated with TTS + avatar tools.
 
 1. The avatar host reads a **short teaser hint** (4–5 words, oblique and funny) — the
    answer window opens. Fast, clever guessers earn the most points.
-2. ~10 seconds later the host reads a **longer, easier hint** — most players guess here,
-   for fewer points (speed decay: first correct answer scores highest).
-3. Correct answers pop onto the on-stream leaderboard live. One scoring chance per
-   person per word; scores accumulate across the episode.
+2. A **3–4 second beat** later the host reads a **fuller, easier hint** — most players
+   guess here, for fewer points (speed decay: first correct answer scores highest).
+3. The whole word runs inside a single **20-second window**; when it closes the host
+   reveals the answer and the next word begins immediately. Correct answers pop onto
+   the on-stream leaderboard live — one scoring chance per person per word; scores
+   accumulate across the episode.
 
 ## Architecture
 

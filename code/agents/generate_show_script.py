@@ -9,7 +9,10 @@ questions.json:
   show_script.txt   human-readable, with [PAUSE]/[WINDOW] markers — what
                     you actually feed to ElevenLabs clip by clip
 
-Timing is symbolic ([PAUSE 3s], window open/close markers): real offsets
+Each word is a 2-hint round inside ONE window_seconds window: the teaser
+opens it, a 3-4s beat later the confident closer lands, then the reveal
+after the window closes, then the next word. The concrete middle hint is
+kept as spare_hint (never read on air). Timing is symbolic: real offsets
 only exist once TTS audio exists, so the scorer sync stays manual-Enter
 until then.
 """
@@ -37,19 +40,41 @@ def _write_atomic(path: str, text: str):
     os.replace(tmp, path)
 
 
-def assemble_txt(frame: dict, hints_by_word: dict, window_seconds: int) -> str:
-    lines = ["=== INTRO ===", frame["intro"], ""]
-    for i, w in enumerate(frame["words"], 1):
+def episode_words(frame: dict, hints_by_word: dict) -> list[dict]:
+    """Two hints per round: the teaser opens the window, a 3-4s beat later
+    the confident closer lands, and the whole word runs inside one window.
+    The concrete middle hint stays as spare material (never read on air)."""
+    words = []
+    for w in frame["words"]:
+        hints = hints_by_word[w["word"]]
+        words.append({
+            "word": w["word"],
+            "lead_in": w["lead_in"],
+            "teaser": hints[0],
+            "closer": hints[-1],
+            "spare_hint": hints[1] if len(hints) > 2 else None,
+            "reveal": w["reveal"],
+        })
+    return words
+
+
+def assemble_txt(intro: str, words: list[dict], outro: str,
+                 window_seconds: int) -> str:
+    lines = ["=== INTRO ===", intro, ""]
+    for i, w in enumerate(words, 1):
         lines += [
             f"=== WORD {i}: {w['word']} ===",
             w["lead_in"],
-            f"[WINDOW OPENS — {window_seconds}s]",
+            f"[WINDOW OPENS — {window_seconds}s total]",
+            w["teaser"],
+            "[PAUSE 3-4s]",
+            w["closer"],
+            "[WAIT until the window closes]",
+            w["reveal"],
+            "[NEXT WORD]",
+            "",
         ]
-        for hint in hints_by_word[w["word"]]:
-            lines += [hint, "[PAUSE 3s]"]
-        lines[-1] = "[WAIT until window closes]"  # after the last hint
-        lines += [w["reveal"], ""]
-    lines += ["=== OUTRO ===", frame["outro"], ""]
+    lines += ["=== OUTRO ===", outro, ""]
     return "\n".join(lines)
 
 
@@ -87,10 +112,11 @@ def main():
                       "— review before recording", file=sys.stderr)
 
     db.save_state("show_scripter", "last_script", frame)
-    _write_atomic(OUT_JSON, json.dumps(
-        {"window_seconds": window_seconds, **frame},
-        ensure_ascii=False, indent=2) + "\n")
-    txt = assemble_txt(frame, hints_by_word, window_seconds)
+    words = episode_words(frame, hints_by_word)
+    script = {"window_seconds": window_seconds, "intro": frame["intro"],
+              "words": words, "outro": frame["outro"]}
+    _write_atomic(OUT_JSON, json.dumps(script, ensure_ascii=False, indent=2) + "\n")
+    txt = assemble_txt(frame["intro"], words, frame["outro"], window_seconds)
     _write_atomic(OUT_TXT, txt)
 
     print(f"Wrote {OUT_TXT} and {OUT_JSON}\n")
