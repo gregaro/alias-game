@@ -6,9 +6,15 @@ runs hint_generator over each word. The combined show-ready material
 hint_generator/last_hints — the words -> questions.json step will read it
 from there. One failed word is a warning, not an error: 9 playable words
 still make a show.
+
+Hints go into avatar TTS, so read the printed output before recording.
+A hint that contains its own target word is flagged (not fatal — the
+model's hard rule, but reasoning models occasionally slip): re-run or
+edit by hand.
 """
 import json
 import sys
+import unicodedata
 
 from dotenv import load_dotenv
 
@@ -18,13 +24,27 @@ import db
 from orchestrator import Orchestrator
 
 
+def _norm(s: str) -> str:
+    return unicodedata.normalize("NFC", s).casefold()
+
+
+def leak_check(word: str, hints: list[str]) -> list[str]:
+    """A hint must never contain the target word (or any word of a phrase)."""
+    return [
+        f"hint {i} contains '{part}'"
+        for i, hint in enumerate(hints, 1)
+        for part in _norm(word).split()
+        if part in _norm(hint)
+    ]
+
+
 def main():
     word_set = db.latest_state("trend_researcher", "last_output")
     if not word_set or not word_set.get("words"):
         raise SystemExit("No word set in the DB — run research_words.py first.")
 
     orch = Orchestrator()
-    show = []
+    show, flags = [], []
     for entry in word_set["words"]:
         word = entry["word"]
         try:
@@ -32,6 +52,7 @@ def main():
             # per-word last_output that would shadow each other.
             result = orch.run("hint_generator", f"WORD: {word}", persist=False)
             show.append({**entry, "hints": result["hints"]})
+            flags += [f"{word}: {leak}" for leak in leak_check(word, result["hints"])]
         except Exception as exc:
             print(f"warning: hints failed for {word!r}: {exc}", file=sys.stderr)
 
@@ -46,6 +67,11 @@ def main():
         for i, hint in enumerate(entry["hints"], 1):
             print(f"    {i}. {hint}")
         print()
+
+    if flags:
+        print("REVIEW NEEDED — these hints leak their target word:")
+        for flag in flags:
+            print(f"  - {flag}")
 
 
 if __name__ == "__main__":

@@ -37,7 +37,8 @@ code/
 │   │                   is on in config.yaml).
 │   ├── generate_hints.py  Stage two: reads the latest word set from the DB,
 │   │                   runs hint_generator per word, saves show-ready
-│   │                   [{word, hints}] back to the DB.
+│   │                   [{word, hints}] back to the DB. Flags hints that leak
+│   │                   their target word — review before TTS recording.
 │   ├── fetch_topics.py Topic fetchers: Google Trends RSS (geo=AM + US),
 │   │                   hy-Wikipedia top reads, YouTube trending in AM
 │   │                   (reuses the scorer's OAuth). A failed source is a
