@@ -39,6 +39,10 @@ code/
 │   │                   runs hint_generator per word, saves show-ready
 │   │                   [{word, hints}] back to the DB. Flags hints that leak
 │   │                   their target word — review before TTS recording.
+│   ├── generate_questions.py  Stage three (no LLM): hints from the DB ->
+│   │                   ../questions/questions.json for the scorer. Keeps
+│   │                   existing scoring settings; answers still need a
+│   │                   human variants pass before the show.
 │   ├── fetch_topics.py Topic fetchers: Google Trends RSS (geo=AM + US),
 │   │                   hy-Wikipedia top reads, YouTube trending in AM
 │   │                   (reuses the scorer's OAuth). A failed source is a
@@ -99,6 +103,7 @@ Agents (need `ANTHROPIC_API_KEY`/`OPENAI_API_KEY`/`OPENROUTER_API_KEY` in
 python code/agents/main.py           # demo: generate hints for one word
 python code/agents/research_words.py # per show, stage 1: trends -> word set
 python code/agents/generate_hints.py # per show, stage 2: word set -> hints
+python code/agents/generate_questions.py # stage 3: hints -> questions.json
 ```
 
 ## Setup on a new machine
