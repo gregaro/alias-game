@@ -28,6 +28,18 @@ agents:
     skill: difficulty_tuning
     output: json
 
+  show_scripter:
+    provider: openrouter
+    model: google/gemini-3.1-pro-preview   # same voice family as the hints
+    temperature: 0.8
+    max_tokens: 8000               # one call writes the whole episode frame
+    skill: show_script
+    output: json
+    fallback:
+      provider: anthropic
+      model: claude-opus-4-8       # rejects temperature — omit it
+      max_tokens: 3000
+
   trend_researcher:
     provider: openrouter           # A/B winner: best Armenian wildcards, only
                                    # model that mines the Armenian YouTube feed

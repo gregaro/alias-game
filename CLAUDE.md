@@ -43,6 +43,10 @@ code/
 │   │                   ../questions/questions.json for the scorer. Keeps
 │   │                   existing scoring settings; answers still need a
 │   │                   human variants pass before the show.
+│   ├── generate_show_script.py  Stage four: show_scripter agent writes the
+│   │                   host frame (intro/lead-ins/reveals/outro); weaves in
+│   │                   the hints and writes ../questions/show_script.txt
+│   │                   (+ .json) — the text you record clip by clip.
 │   ├── fetch_topics.py Topic fetchers: Google Trends RSS (geo=AM + US),
 │   │                   hy-Wikipedia top reads, YouTube trending in AM
 │   │                   (reuses the scorer's OAuth). A failed source is a
@@ -70,8 +74,10 @@ code/
 │                       (epoch seconds), leaderboard ([{name, score}]).
 │                       Gitignored — runtime artifact.
 ├── questions/
-│   └── questions.json  window_seconds, points (decay schedule), min_points,
-│                       and questions[] with text + answers[] variants.
+│   ├── questions.json  window_seconds, points (decay schedule), min_points,
+│   │                   and questions[] with text + answers[] variants.
+│   └── show_script.txt / .json  Per-episode clip script (host frame +
+│                       hints with [PAUSE]/[WINDOW] markers) for TTS/avatar.
 ├── scorer/
 │   ├── chat_scorer.py  Finds the active broadcast's liveChatId, polls
 │   │                   liveChatMessages.list, scores answers, writes
@@ -104,6 +110,7 @@ python code/agents/main.py           # demo: generate hints for one word
 python code/agents/research_words.py # per show, stage 1: trends -> word set
 python code/agents/generate_hints.py # per show, stage 2: word set -> hints
 python code/agents/generate_questions.py # stage 3: hints -> questions.json
+python code/agents/generate_show_script.py # stage 4: hints -> clip script
 ```
 
 ## Setup on a new machine
