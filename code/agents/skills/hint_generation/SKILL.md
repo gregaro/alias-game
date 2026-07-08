@@ -23,7 +23,9 @@ cruelly).
 - ALL hints must be in natural, fluent Eastern Armenian. Colloquial and
   street forms are welcome — write how people talk at the table, not how
   textbooks do — as long as the hint stays clear to a mixed-age audience.
-- Exactly 3 hints, one short sentence each (max ~15 words per hint).
+- Exactly 3 hints. Hint 1 is a TEASER: at most 4-5 words, no full
+  sentence needed — a flash of an image, not an explanation. Hints 2 and 3
+  are one short sentence each (max ~15 words per hint).
 - Never state the answer, even partially, even in the final hint.
 - Only state facts you are CERTAIN of (hometowns, nicknames, dates,
   founders). A wrong "fact" read on stream is worse than a vague hint —
@@ -31,8 +33,8 @@ cruelly).
   when unsure, cut the detail, keep the joke.
 
 ## Hint ladder (hardest → easiest)
-1. **Oblique** — an association, mood, or cultural echo. A player who gets
-   this one should feel proud.
+1. **Oblique teaser** — 4-5 words max: an association, mood, or cultural
+   echo compressed to a flash. A player who gets this one should feel proud.
 2. **Concrete** — one distinguishing property, function, or situation where
    the thing appears. Most players narrow it to 2–3 candidates here.
 3. **Confident** — specific enough that most players guess it, but still a
