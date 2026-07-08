@@ -44,11 +44,15 @@ def main():
     for topic in topics:
         print(f"  - {topic}")
 
-    avoid = recent_words()
-    if avoid:
-        print(f"\nAvoiding {len(avoid)} recently used words: {', '.join(avoid)}")
-
     orch = Orchestrator()
+    if orch.config.get("rehearsal_mode"):
+        avoid = []
+        print("\nREHEARSAL MODE (config.yaml rehearsal_mode: true): recent-word "
+              "blocking is OFF — set it to false before the first real show.")
+    else:
+        avoid = recent_words()
+        if avoid:
+            print(f"\nAvoiding {len(avoid)} recently used words: {', '.join(avoid)}")
     result = orch.run(
         "trend_researcher",
         "Build the word set: mostly wildcard words of your own invention, "
