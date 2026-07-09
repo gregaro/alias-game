@@ -129,7 +129,8 @@ code/
 ├── overlay/     Flask server + transparent 1920x1080 overlay page (leaderboard,
 │                question lower-third, countdown ring) polled by OBS
 ├── questions/   questions.json (answer windows, points decay, questions) and the
-│                per-episode show_script.txt/.json for TTS recording
+│                per-episode show script: show_script.txt (human reference),
+│                .json (automation), _tts.txt (paste into ElevenLabs)
 ├── scorer/      YouTube auth (OAuth + token cache), chat poller/scorer, Armenian
 │                answer normalization
 └── secrets/     gitignored: OAuth client + cached token
