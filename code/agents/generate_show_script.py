@@ -10,9 +10,15 @@ questions.json:
                     you actually feed to ElevenLabs clip by clip
 
 Each word is a 2-hint round inside ONE window_seconds window: the teaser
-opens it, a 3-4s beat later the confident closer lands, then the reveal
-after the window closes, then the next word. The concrete middle hint is
-kept as spare_hint (never read on air). Timing is symbolic: real offsets
+opens it, a 3-4s beat later the confident closer lands, then guessing
+time until the window closes. The concrete middle hint is kept as
+spare_hint (never read on air).
+
+Reveals never interrupt a scored window: a word's reveal is spoken at the
+START of the NEXT word's turn (host says the answer, then launches the
+next word), and the last word's reveal is folded into the outro. So the
+on-air flow is intro -> (10 x 20s windows) -> outro, with each answer
+announced as the following word begins. Timing is symbolic: real offsets
 only exist once TTS audio exists, so the scorer sync stays manual-Enter
 until then.
 """
@@ -62,19 +68,24 @@ def assemble_txt(intro: str, words: list[dict], outro: str,
                  window_seconds: int) -> str:
     lines = ["=== INTRO ===", intro, ""]
     for i, w in enumerate(words, 1):
+        lines.append(f"=== WORD {i}: {w['word']} ===")
+        if i > 1:
+            # Option C: announce the previous word's answer, THEN launch this
+            # one — all before the window opens, so no reveal lands mid-window.
+            lines.append(f"(reveal prev)  {words[i - 2]['reveal']}")
         lines += [
-            f"=== WORD {i}: {w['word']} ===",
             w["lead_in"],
             f"[WINDOW OPENS — {window_seconds}s total]",
             w["teaser"],
             "[PAUSE 3-4s]",
             w["closer"],
-            "[WAIT until the window closes]",
-            w["reveal"],
-            "[NEXT WORD]",
+            "[guessing until the window closes — no reveal yet]",
             "",
         ]
-    lines += ["=== OUTRO ===", outro, ""]
+    # The last word has no next turn to carry its reveal, so it opens the outro.
+    lines += ["=== OUTRO ===",
+              f"(reveal prev)  {words[-1]['reveal']}",
+              outro, ""]
     return "\n".join(lines)
 
 

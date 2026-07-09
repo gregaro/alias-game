@@ -17,10 +17,12 @@ and the host's video is generated with TTS + avatar tools.
    answer window opens. Fast, clever guessers earn the most points.
 2. A **3–4 second beat** later the host reads a **fuller, easier hint** — most players
    guess here, for fewer points (speed decay: first correct answer scores highest).
-3. The whole word runs inside a single **20-second window**; when it closes the host
-   reveals the answer and the next word begins immediately. Correct answers pop onto
-   the on-stream leaderboard live — one scoring chance per person per word; scores
-   accumulate across the episode.
+3. The whole word runs inside a single **20-second window**. To keep the answer out of
+   the scored window, the host announces it as the *next* word begins ("that was X —
+   now, next up…"), so the show is a clean run of 20-second windows: intro → 10 words →
+   outro, the last answer landing in the outro. Correct answers pop onto the on-stream
+   leaderboard live — one scoring chance per person per word; scores accumulate across
+   the episode.
 
 ## Architecture
 
