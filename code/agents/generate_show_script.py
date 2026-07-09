@@ -14,13 +14,18 @@ opens it, a 3-4s beat later the confident closer lands, then guessing
 time until the window closes. The concrete middle hint is kept as
 spare_hint (never read on air).
 
-Reveals never interrupt a scored window: a word's reveal is spoken at the
-START of the NEXT word's turn (host says the answer, then launches the
-next word), and the last word's reveal is folded into the outro. So the
-on-air flow is intro -> (10 x 20s windows) -> outro, with each answer
-announced as the following word begins. Timing is symbolic: real offsets
-only exist once TTS audio exists, so the scorer sync stays manual-Enter
-until then.
+Windows are fixed-length and contiguous so the parallel scorer stays
+locked to the video: chat_scorer opens window 1 on one Enter and
+auto-advances every window_seconds with NO gaps between words. To match
+that, each window is one self-contained block that OPENS by announcing
+the PREVIOUS word's answer (safe — that window is already closed), then
+lead-in, teaser, beat, hint, guessing. The last word's answer lands in
+the outro (after the final window). Nothing is spoken between windows.
+
+NOTE: with the reveal + lead-in now inside the window, window_seconds
+must be large enough to fit reveal_prev + lead-in + both hints + real
+guessing time — likely more than 20s. Set it from the recorded clip
+length once TTS audio exists.
 """
 import json
 import os
@@ -66,26 +71,41 @@ def episode_words(frame: dict, hints_by_word: dict) -> list[dict]:
 
 def assemble_txt(intro: str, words: list[dict], outro: str,
                  window_seconds: int) -> str:
-    lines = ["=== INTRO ===", intro, ""]
+    n = len(words)
+    lines = [
+        "=== INTRO (plays BEFORE the clock — record separately) ===",
+        intro,
+        "",
+        f"Windows below are each exactly {window_seconds}s and run "
+        "back-to-back with NO gaps. Start the scorer as WINDOW 1 opens; it "
+        f"auto-advances every {window_seconds}s. Each window reveals the "
+        "PREVIOUS word's answer at its start (safe — that window is already "
+        "closed), then hints the current word.",
+        "",
+    ]
     for i, w in enumerate(words, 1):
-        lines.append(f"=== WORD {i}: {w['word']} ===")
+        lines.append(f"===== WINDOW {i}/{n} — {window_seconds}s — "
+                     f"SCORING: {w['word']} =====")
+        lines.append(f">>> OPEN 0:00  (scorer begins counting «{w['word']}»)")
         if i > 1:
-            # Option C: announce the previous word's answer, THEN launch this
-            # one — all before the window opens, so no reveal lands mid-window.
-            lines.append(f"(reveal prev)  {words[i - 2]['reveal']}")
+            lines.append(f"[reveal «{words[i - 2]['word']}»] "
+                         f"{words[i - 2]['reveal']}")
         lines += [
-            w["lead_in"],
-            f"[WINDOW OPENS — {window_seconds}s total]",
-            w["teaser"],
-            "[PAUSE 3-4s]",
-            w["closer"],
-            "[guessing until the window closes — no reveal yet]",
+            f"[lead-in] {w['lead_in']}",
+            f"[teaser]  {w['teaser']}",
+            "[pause ~3-4s]",
+            f"[hint]    {w['closer']}",
+            "[viewers keep typing until the window ends]",
+            f"<<< CLOSE 0:{window_seconds:02d}  (next window opens immediately)",
             "",
         ]
-    # The last word has no next turn to carry its reveal, so it opens the outro.
-    lines += ["=== OUTRO ===",
-              f"(reveal prev)  {words[-1]['reveal']}",
-              outro, ""]
+    # The last word has no next window to carry its reveal, so it opens the outro.
+    lines += [
+        "=== OUTRO (after the last window closes) ===",
+        f"[reveal «{words[-1]['word']}»] {words[-1]['reveal']}",
+        outro,
+        "",
+    ]
     return "\n".join(lines)
 
 
@@ -124,8 +144,26 @@ def main():
 
     db.save_state("show_scripter", "last_script", frame)
     words = episode_words(frame, hints_by_word)
-    script = {"window_seconds": window_seconds, "intro": frame["intro"],
-              "words": words, "outro": frame["outro"]}
+    # Each window is one scored unit: it announces the PREVIOUS word's answer
+    # at its start (reveal_prev, null for window 1), then hints its own word.
+    windows = [
+        {
+            "word": w["word"],
+            "reveal_prev": words[i - 1]["reveal"] if i > 0 else None,
+            "lead_in": w["lead_in"],
+            "teaser": w["teaser"],
+            "closer": w["closer"],
+            "spare_hint": w["spare_hint"],
+        }
+        for i, w in enumerate(words)
+    ]
+    script = {
+        "window_seconds": window_seconds,
+        "intro": frame["intro"],
+        "windows": windows,
+        "final_reveal": words[-1]["reveal"],  # spoken in the outro
+        "outro": frame["outro"],
+    }
     _write_atomic(OUT_JSON, json.dumps(script, ensure_ascii=False, indent=2) + "\n")
     txt = assemble_txt(frame["intro"], words, frame["outro"], window_seconds)
     _write_atomic(OUT_TXT, txt)
