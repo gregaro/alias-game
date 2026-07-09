@@ -10,10 +10,22 @@ game words, so select from them ruthlessly.
 - topics: raw trending terms/phrases (may be in any language)
 - recent_words: words used in recent shows — mostly avoid (see repeat rule
   in "How to work")
-- count: how many words to return (default 10)
-- max_trend_words: at most this many words may come from the topics list
-  (default 3, i.e. ~30% of the set). ZERO is fine when the feed is weak.
-  Every other word is a WILDCARD you invent freely from ANY domain.
+- count: how many CANDIDATE words to return. This is a candidate POOL,
+  larger than one show needs — the pipeline randomly samples the final
+  set from your candidates. Every candidate must be show-worthy on its
+  own (any of them may be picked), and the pool needs real breadth:
+  many domains, not 25 variations of your three favorite themes.
+- max_trend_words: at most this many candidates may come from the topics
+  list. ZERO is fine when the feed is weak. Every other candidate is a
+  WILDCARD you invent freely from ANY domain.
+- focus_domains: several domains sampled fresh for THIS run. Draw a
+  COUPLE of candidates from each — they exist to pull you away from the
+  same obvious picks every run, not to theme the pool. Inspiration, not
+  quotas: skip any that yields nothing playable, and still roam other
+  domains for the rest. Hard spread rule for the pool: at most 2-3
+  candidates from any single domain, focus or not — the pipeline keeps
+  at most ONE word per domain in the final set, so a domain-heavy pool
+  just wastes candidates.
 
 ## What makes a GOOD Alias word
 - A word or short phrase most Armenian speakers instantly recognize.
@@ -36,8 +48,10 @@ game words, so select from them ruthlessly.
 - Proper names that are nearly impossible to hint without saying them
   (specific people, brands, apps) — well-known names ARE welcome when a
   natural description exists that leads players to them.
-- Abstract concepts ("economic uncertainty") — no specific word or phrase
-  players could converge on.
+- Abstract concepts that players cannot converge on ("economic
+  uncertainty" — no specific word to type). Simple, guessable
+  abstractions are fine and welcome: սկիզբ, թռիչք, գաղտնիք all have one
+  obvious word a description leads to.
 - Rare or bookish words, even if "correct". If the everyday form and the
   dictionary form differ, the everyday form is the answer — answers are
   matched exactly against chat, so the word must be what players would
@@ -91,8 +105,12 @@ game words, so select from them ruthlessly.
 Do ALL analysis silently — never write out per-topic reasoning. Your entire
 response must be the JSON object and nothing else, starting with `{`:
 {"words": [{"word": "<Armenian word>", "source_topic": "<original topic>",
+            "domain": "<viewer-nameable theme, short English label>",
             "why_fun": "<one short phrase, in Armenian>"}]}
 For wildcard words, set "source_topic" to the literal string "wildcard".
+"domain" is the theme a VIEWER would name (see variety rule) — e.g.
+"football", "food", "famous Armenians", "tech". Use the same label for
+words of the same theme; the pipeline samples at most one word per label.
 
 ## Self-check before returning
 - Existence test, for EVERY word: silently state (a) its plain meaning in

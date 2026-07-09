@@ -45,7 +45,8 @@ agents:
                                    # model that mines the Armenian YouTube feed
     model: google/gemini-3.1-pro-preview   # preview slug — if it 404s one day,
                                            # fall back to google/gemini-2.5-pro
-    temperature: 0.5
+    temperature: 0.9             # high on purpose: word selection should vary
+                                 # run to run (reasoning dampens temp anyway)
     max_tokens: 8000               # reasoning models spend hidden tokens
                                    # before the JSON; give generous headroom
     skill: trend_research
