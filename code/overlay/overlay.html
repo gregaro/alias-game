@@ -190,13 +190,15 @@
   }
 
   /* ---------- Countdown ring (right end of the bar) ---------- */
+  /* Always laid out, even with no window running. Taking it out of the flow
+     when the countdown ends would reflow the hint text sideways for a frame —
+     right as the answer appears, which reads as a glitch. When there is nothing
+     to count, the arc is simply empty and the faint track holds the space. */
   .timer {
     flex-shrink: 0;
     position: relative;
     width: 92px; height: 92px;
-    display: none;
   }
-  .timer.show { display: block; }
   .timer svg { transform: rotate(-90deg); }
   .timer__track { stroke: rgba(255, 255, 255, 0.12); }
   .timer__fill {
@@ -273,7 +275,7 @@
   <!-- Leaderboard -->
   <div class="board">
     <div class="board__head">
-      <span class="board__title">Leaderboard</span>
+      <span class="board__title">Առաջատարներ</span>
       <span class="live"><span class="live__dot"></span>Live</span>
     </div>
     <div class="rows" id="rows"></div>
@@ -372,14 +374,20 @@
     const timer = document.getElementById("timer");
     const ring = document.getElementById("ring");
 
-    if (windowEndsAt === null) { timer.classList.remove("show", "low"); return; }
+    // Nothing running, or the window just ended: empty the arc but leave the
+    // ring where it is. The layout must not move — the answer lands right here.
+    const idle = () => {
+      ring.style.strokeDashoffset = RING_CIRCUMFERENCE;
+      timer.classList.remove("low");
+    };
+
+    if (windowEndsAt === null) { idle(); return; }
     const remaining = windowEndsAt - (Date.now() / 1000);
     if (remaining <= 0) {
-      timer.classList.remove("show", "low");
+      idle();
       windowEndsAt = null;
       return;
     }
-    timer.classList.add("show");
     const total = windowTotal || remaining;
     const frac = Math.max(0, Math.min(1, remaining / total));
     ring.style.strokeDashoffset = (RING_CIRCUMFERENCE * (1 - frac)).toFixed(1);
