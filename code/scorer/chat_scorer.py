@@ -79,6 +79,12 @@ def parse_mark(v) -> float:
     return secs
 
 
+def answer_text(q) -> str:
+    """What the lower-third says while the host announces this word's answer.
+    Armenian, because the host is: "The correct answer: <word>"."""
+    return "Ճիշտ պատասխանը՝ " + q.get("word", q["answers"][0])
+
+
 def spoken_hints(q) -> list[str]:
     """The hints the host actually SAYS, in the order he says them.
 
@@ -301,60 +307,62 @@ class Scorer:
                     question=self._q, window_ends_at=self._ends, phase="question")
 
     # ----- opening / closing an answer window -----
+    #
+    # SCORING and DISPLAY run on different clocks, and keeping them apart is the
+    # whole trick here.
+    #
+    # Scoring covers the FULL window (start[i] -> start[i+1]), because that is
+    # exactly the span in which the word's answer is still secret — it stops the
+    # instant the host says it out loud.
+    #
+    # The overlay follows the host's voice instead. A window's first seconds are
+    # the host announcing the PREVIOUS word's answer, so that is what the bar
+    # shows, with no ring: there is nothing to guess yet. The countdown only
+    # starts at the teaser and runs to the end of the window.
 
     _q = None
     _ends = None
 
-    def _open(self, q, close_epoch, text=None):
-        """Open q's window NOW; tell the overlay it closes at close_epoch
-        (absolute epoch seconds, so the countdown ring shows the real
-        remaining time whatever the window's length).
-
-        `text` is what the lower-third shows right now — by default BOTH spoken
-        hints (never the spare, which the host doesn't read), or "" when hint
-        marks will reveal them one at a time later in the window (the overlay
-        hides the bar on empty text). Scoring is live from this instant either
-        way: an empty bar means the host hasn't given the first hint yet, not
-        that answers are closed."""
+    def _open(self, q, close_epoch):
+        """Start scoring q. Deliberately publishes NOTHING — the caller decides
+        what is on screen, because at this instant the host is still announcing
+        the previous word's answer, not asking this one."""
         with self.lock:
             self.window_open = True
             self.window_open_at = datetime.now(timezone.utc)
             self.current_answers = q["answers"]
             self.correct_count = 0
             self.scored_channels = set()
-            self._q = {"number": q.get("number"), "total": self._total,
-                       "text": "  •  ".join(spoken_hints(q))
-                               if text is None else text}
-            self._ends = close_epoch
-            self.publish_state(question=self._q, window_ends_at=close_epoch,
-                               phase="question")
         remaining = max(0.0, close_epoch - time.time())
         print(f"\nQ{q.get('number')}: {q.get('word', q['text'])}")
-        print(f"Window open for {remaining:.0f}s. Accepted: {q['answers']}")
+        print(f"Scoring open for {remaining:.0f}s. Accepted: {q['answers']}")
 
-    def _show(self, text):
-        """Republish the open question with more hint text on screen. Only the
-        lower-third changes — the window, the clock and the scores don't."""
+    def _display(self, number, text, ends=None, phase="question"):
+        """Set the lower-third. `ends` is the countdown ring's target (epoch
+        seconds) or None to hide the ring entirely. Passing the SAME `ends`
+        across calls lets the text change without disturbing the countdown —
+        that is how the long hint replaces the teaser mid-window."""
         with self.lock:
-            self._q = dict(self._q, text=text)
-            self.publish_state(question=self._q, window_ends_at=self._ends,
-                               phase="question")
+            self._q = {"number": number, "total": self._total, "text": text}
+            self._ends = ends
+            self.publish_state(question=self._q, window_ends_at=ends,
+                               phase=phase)
 
     def _close(self):
+        """Stop scoring. Leaves the bar alone: whoever opens the next window
+        puts this word's answer up, which is the same instant the host says it."""
         with self.lock:
             self.window_open = False
-            self._ends = None
-            self.publish_state(question=self._q, window_ends_at=None,
-                               phase="reveal")
         print(f"Time! {self.correct_count} correct answer(s) this question.")
 
     def open_question(self, q):
-        """FIXED mode: open now, run window_seconds, close. Windows are
-        back-to-back, so the reveal of q lands as the next window opens."""
+        """FIXED mode: open now, run window_seconds, close, show the answer."""
         close_epoch = time.time() + self.window_seconds
         self._open(q, close_epoch)
+        self._display(q.get("number"), "  •  ".join(spoken_hints(q)), close_epoch)
         time.sleep(max(0.0, close_epoch - time.time()))
         self._close()
+        self._display(q.get("number"), answer_text(q), None, phase="reveal")
 
     def run_timeline(self, questions, t0, starts, outro_start, hint_marks=None):
         """TIMELINE mode: open each window at its measured second-mark
@@ -364,11 +372,11 @@ class Scorer:
         timestamps use. The gaps before Q1 (intro) and between windows are
         just waited out; the board stays on its last state meanwhile.
 
-        A window opens on the host REVEALING THE PREVIOUS WORD, several seconds
-        before he gives this word's first hint — so with hint_marks the bar
-        starts empty, the teaser appears when spoken, and the long hint then
-        replaces it. Without marks both hints sit on screen from the open,
-        which hands chat the closer early: fill the marks before a real show."""
+        With hint_marks the bar tracks the host's VOICE through each window: the
+        previous word's answer while he announces it, then the teaser, then the
+        long hint replacing it. The ring runs teaser -> end of window. Without
+        marks both hints sit on screen from the open, which hands chat the
+        closer early: fill the marks before a real show."""
         bounds = list(starts) + [outro_start]
         for i, q in enumerate(questions):
             open_epoch = t0 + bounds[i]
@@ -381,26 +389,45 @@ class Scorer:
                       f"Q{q.get('number')} — check the sync press)")
 
             marks = hint_marks[i] if hint_marks else None
-            self._open(q, close_epoch, text="" if marks else None)
+            self._open(q, close_epoch)
 
-            if marks:
-                # One hint on screen at a time, each REPLACING the last at the
-                # second the host says it. Not cumulative: the two stacked make
-                # the lower-third tall enough to collide with the leaderboard,
-                # and the screen should follow the voice — when he moves to the
-                # long hint, so does the bar.
+            if not marks:
+                self._display(q.get("number"),
+                              "  •  ".join(spoken_hints(q)), close_epoch)
+            else:
+                # The window opens ON the host announcing the previous word's
+                # answer, so put that answer up — and keep the ring OFF: this
+                # word's clock hasn't started, there is nothing to guess yet.
+                if i:
+                    prev = questions[i - 1]
+                    self._display(prev.get("number"), answer_text(prev),
+                                  None, phase="reveal")
+                    print(f"  answer to Q{prev.get('number')}: {prev['word']}")
+                else:
+                    self._display(None, "", None)   # Q1: nothing precedes it
+
+                # Then one hint at a time, each REPLACING the last as the host
+                # says it. Passing the same close_epoch each time starts the ring
+                # at the teaser and lets it run on undisturbed through the swap
+                # to the long hint.
                 hints = spoken_hints(q)
                 for n, mark in enumerate(marks[:len(hints)], 1):
                     gap = (t0 + mark) - time.time()
                     if gap > 0:
                         time.sleep(gap)
-                    self._show(hints[n - 1])
+                    self._display(q.get("number"), hints[n - 1], close_epoch)
                     print(f"  hint {n}/{len(hints)}: {hints[n - 1]}")
 
             rest = close_epoch - time.time()
             if rest > 0:
                 time.sleep(rest)
             self._close()
+
+        # No window follows the last one to announce its answer, so do it here —
+        # outro_start is exactly where the host's final reveal lands.
+        last = questions[-1]
+        self._display(last.get("number"), answer_text(last), None, phase="reveal")
+        print(f"  answer to Q{last.get('number')}: {last['word']}")
 
 
 # --------------------------------- main ---------------------------------

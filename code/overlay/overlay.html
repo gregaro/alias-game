@@ -208,6 +208,12 @@
      3-10s behind the stream, so a ticking digit would be a lie anyway. */
   .timer.low .timer__fill { stroke: var(--danger); }
   .timer.low { animation: shake 0.9s ease-in-out infinite; }
+
+  /* Answer reveal: same bar, unmistakably not a hint. The ring is already gone
+     by now (the scorer sends no window_ends_at during a reveal). */
+  .qbar.reveal { border-color: rgba(52, 224, 161, 0.45); }
+  .qbar.reveal .qtext { color: var(--leader); font-weight: 600; }
+  .qbar.reveal .qbadge { background: var(--leader); }
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-2px); }
@@ -348,12 +354,15 @@
     rowsEl.style.height = isMobile() ? "auto" : (top.length * ROW_TOTAL) + "px";
   }
 
-  function renderQuestion(q) {
+  function renderQuestion(q, phase) {
     const bar = document.getElementById("qbar");
     if (!q || !q.text) { bar.classList.remove("show"); return; }
     document.getElementById("qnum").textContent = q.number ?? "–";
     document.getElementById("qof").textContent = q.total ? ("of " + q.total) : "Q";
     document.getElementById("qtext").textContent = q.text;
+    // "reveal" is the host announcing a word's answer. Colour it apart from the
+    // hints so nobody reads the answer as one more clue and keeps guessing.
+    bar.classList.toggle("reveal", phase === "reveal");
     bar.classList.add("show");
   }
 
@@ -382,7 +391,7 @@
       const res = await fetch("/state", { cache: "no-store" });
       const s = await res.json();
       renderLeaderboard(s.leaderboard);
-      renderQuestion(s.question);
+      renderQuestion(s.question, s.phase);
 
       // Track when a new window starts so the ring knows its full duration.
       if (s.window_ends_at && s.window_ends_at !== windowEndsAt) {
