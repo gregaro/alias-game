@@ -37,7 +37,7 @@
   .board {
     position: absolute;
     top: 48px;
-    right: 48px;
+    left: 48px;
     width: 560px;
     background: var(--panel);
     border: 1px solid var(--panel-edge);
@@ -203,19 +203,10 @@
     stroke-linecap: round;
     transition: stroke-dashoffset 0.15s linear, stroke 0.3s ease;
   }
-  .timer__num {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: "Space Grotesk", sans-serif;
-    font-weight: 700;
-    font-size: 32px;
-    font-variant-numeric: tabular-nums;
-  }
+  /* The ring alone carries the time: the shrinking arc reads at a glance and
+     doesn't put a hard number on screen. Windows are ~30s and viewers are
+     3-10s behind the stream, so a ticking digit would be a lie anyway. */
   .timer.low .timer__fill { stroke: var(--danger); }
-  .timer.low .timer__num { color: var(--danger); }
   .timer.low { animation: shake 0.9s ease-in-out infinite; }
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -238,7 +229,7 @@
     }
     .board {
       position: absolute;
-      top: 12px; right: 12px;
+      top: 12px; left: 12px;
       width: 260px;
       padding: 12px 14px 16px;
       border-radius: 12px;
@@ -268,7 +259,6 @@
     .qbadge__of { font-size: 9px; }
     .timer { width: 48px; height: 48px; }
     .timer svg { width: 48px; height: 48px; }
-    .timer__num { font-size: 18px; }
   }
 </style>
 </head>
@@ -295,7 +285,6 @@
         <circle class="timer__fill"  cx="46" cy="46" r="40" fill="none" stroke-width="7"
                 id="ring" stroke-dasharray="251.3" stroke-dashoffset="0"/>
       </svg>
-      <div class="timer__num" id="tnum">0</div>
     </div>
   </div>
 
@@ -372,7 +361,6 @@
   function tickTimer() {
     const timer = document.getElementById("timer");
     const ring = document.getElementById("ring");
-    const tnum = document.getElementById("tnum");
 
     if (windowEndsAt === null) { timer.classList.remove("show", "low"); return; }
     const remaining = windowEndsAt - (Date.now() / 1000);
@@ -385,7 +373,6 @@
     const total = windowTotal || remaining;
     const frac = Math.max(0, Math.min(1, remaining / total));
     ring.style.strokeDashoffset = (RING_CIRCUMFERENCE * (1 - frac)).toFixed(1);
-    tnum.textContent = Math.ceil(remaining);
     timer.classList.toggle("low", remaining <= 5);
   }
   setInterval(tickTimer, 100);
