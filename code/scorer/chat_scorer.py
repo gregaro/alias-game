@@ -51,6 +51,11 @@ STATE_FILE = os.path.join(HERE, "../overlay/state.json")
 QUESTIONS_FILE = os.path.join(HERE, "../questions/questions.json")
 TIMELINE_FILE = os.path.join(HERE, "../questions/timeline.json")
 
+# How long an announced answer stays on the lower-third before the bar clears.
+# Long enough to read, short enough that it isn't still sitting there under the
+# host's lead-in to the next word — or under the whole outro.
+ANSWER_HOLD_SECONDS = 5.0
+
 
 # ----------------------------- state file I/O -----------------------------
 
@@ -403,6 +408,13 @@ class Scorer:
                     self._display(prev.get("number"), answer_text(prev),
                                   None, phase="reveal")
                     print(f"  answer to Q{prev.get('number')}: {prev['word']}")
+                    # Clear it after a beat: the host has moved on to the lead-in
+                    # by then, and a stale answer under a new word reads as a
+                    # hint. If the teaser lands first it just replaces it.
+                    hide_at = min(open_epoch + ANSWER_HOLD_SECONDS,
+                                  t0 + marks[0])
+                    time.sleep(max(0.0, hide_at - time.time()))
+                    self._display(None, "", None)
                 else:
                     self._display(None, "", None)   # Q1: nothing precedes it
 
@@ -424,10 +436,15 @@ class Scorer:
             self._close()
 
         # No window follows the last one to announce its answer, so do it here —
-        # outro_start is exactly where the host's final reveal lands.
+        # outro_start is exactly where the host's final reveal lands. Then clear
+        # the bar: the outro is about the winners, so leave the board alone on
+        # screen rather than a dead answer pinned under it.
         last = questions[-1]
         self._display(last.get("number"), answer_text(last), None, phase="reveal")
         print(f"  answer to Q{last.get('number')}: {last['word']}")
+        time.sleep(ANSWER_HOLD_SECONDS)
+        self._display(None, "", None, phase="reveal")
+        print("\nOutro: board only, question bar cleared.")
 
 
 # --------------------------------- main ---------------------------------
