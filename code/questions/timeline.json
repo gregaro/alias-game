@@ -1,0 +1,97 @@
+{
+  "_comment": [
+    "Second-marks measured from the RENDERED video. 0:00 is the video's first",
+    "frame — the instant you press Enter to sync the scorer.",
+    "",
+    "One row per word. Each row has three marks:",
+    "",
+    "  start   The answer window OPENS. This is where the host begins REVEALING",
+    "          THE PREVIOUS WORD's answer — not where this word's hint starts.",
+    "          (For word 1 there is no previous answer: it's where the intro",
+    "          ends and the host begins the lead-in.) Scoring for the previous",
+    "          word stops here, which is exactly right: its answer is now spoken",
+    "          aloud, so nobody can score it by copying the host.",
+    "  teaser  Where the host speaks the SHORT hint. The overlay puts it on",
+    "          screen at this second — before it, the lower-third is blank.",
+    "  hint    Where the host speaks the LONG hint, ~4s later. It's added below",
+    "          the teaser; the teaser stays up.",
+    "",
+    "So a row runs: [start] reveal previous + lead-in ... [teaser] short hint ...",
+    "4s pause ... [hint] long hint ... ~5s to guess ... then the NEXT row's start",
+    "closes this window.",
+    "",
+    "Marks may be plain seconds (95) or clock strings (\"1:35\").",
+    "  starts must be strictly increasing across rows, and",
+    "  start <= teaser < hint < (next row's start).",
+    "",
+    "The scorer NEEDS 'start' + 'outro_start'; those drive scoring. 'teaser' and",
+    "'hint' only drive the overlay — leave them null and every hint just shows at",
+    "window open. A bad mark is printed and ignored, never scored on.",
+    "",
+    "The middle hint in questions.json is a SPARE the host never reads. It is",
+    "never shown on screen either — only two marks per row."
+  ],
+  "windows": [
+    {
+      "word": "Գագիկ Ծառուկյան",
+      "start": 29,
+      "teaser": 29,
+      "hint": 37
+    },
+    {
+      "word": "պահմտոցի",
+      "start": 50,
+      "teaser": "1:02",
+      "hint": "1:09"
+    },
+    {
+      "word": "Սարդ-մարդ",
+      "start": "1:20",
+      "teaser": "1:35",
+      "hint": "1:42"
+    },
+    {
+      "word": "խաշ",
+      "start": "1:54",
+      "teaser": "2:09",
+      "hint": "2:17"
+    },
+    {
+      "word": "բորենի",
+      "start": "2:27",
+      "teaser": "2:40",
+      "hint": "2:47"
+    },
+    {
+      "word": "փռշտալ",
+      "start": "2:58",
+      "teaser": "3:12",
+      "hint": "3:18"
+    },
+    {
+      "word": "խցանահան",
+      "start": "3:30",
+      "teaser": "3:42",
+      "hint": "3:49"
+    },
+    {
+      "word": "ժլատ",
+      "start": "4:00",
+      "teaser": "4:12",
+      "hint": "4:18"
+    },
+    {
+      "word": "Ամազոն",
+      "start": "4:28",
+      "teaser": "4:42",
+      "hint": "4:49"
+    },
+    {
+      "word": "վարսավիր",
+      "start": "4:57",
+      "teaser": "5:10",
+      "hint": "5:17"
+    }
+  ],
+  "outro_start": "5:27"
+}

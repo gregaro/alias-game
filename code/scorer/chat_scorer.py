@@ -9,14 +9,27 @@ How it works
 - Finds your active broadcast's liveChatId.
 - Runs a background thread that polls liveChatMessages.list at the interval the
   API tells it to (pollingIntervalMillis).
-- You drive the show from the terminal: press Enter to open the next question's
-  answer window. While a window is open, correct answers score with speed decay
-  (1st correct = most points, then less). Scores are cumulative across questions.
+- You sync the show with ONE keypress: press Enter the moment the video starts.
+  From there the scorer opens/closes each question's answer window on its own.
+  While a window is open, correct answers score with speed decay (1st correct =
+  most points, then less). Scores are cumulative across questions.
 - After every scoring change it writes state.json — the SAME file your overlay
   server reads — so names pop onto the leaderboard live.
 
-This is the Phase 4 / Phase 5 orchestrator in its simplest honest form: you are
-the one advancing questions. Automating that sequence is a backlog item.
+Two timing modes (chosen automatically):
+- TIMELINE mode (preferred): if ../questions/timeline.json exists, each window
+  opens at a measured second-mark read off the rendered video. The host reads
+  variable-length rounds (the [pause N seconds] tags make each window a
+  different length), so fixed windows would drift out of sync. starts[i] is
+  when question i's window opens, relative to the video-start sync press;
+  window i closes when window i+1 opens (i.e. the instant the host reveals
+  answer i), and the last window closes at outro_start. See timeline.json.
+- FIXED mode (fallback): no timeline.json → every window is window_seconds
+  long, back-to-back. Fine for a dry run before you've measured the video.
+
+This is the Phase 4 / Phase 5 orchestrator in its simplest honest form: you
+sync it once, the timeline (or the fixed clock) advances questions. Fully
+automating the render+measure step is a backlog item.
 
 Run (with youtube_auth.py, normalize.py, questions.json, state.json alongside):
     pip install google-api-python-client google-auth-oauthlib flask
@@ -36,6 +49,7 @@ from normalize import matches
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(HERE, "../overlay/state.json")
 QUESTIONS_FILE = os.path.join(HERE, "../questions/questions.json")
+TIMELINE_FILE = os.path.join(HERE, "../questions/timeline.json")
 
 
 # ----------------------------- state file I/O -----------------------------
@@ -51,6 +65,119 @@ def write_state(state: dict):
 def load_questions() -> dict:
     with open(QUESTIONS_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def parse_mark(v) -> float:
+    """Accept a second-mark as a number (95) or a clock string ("1:35",
+    "0:07", "1:02:03") and return seconds. Written this way so the marks you
+    jot down while scrubbing the video paste straight into timeline.json."""
+    if isinstance(v, (int, float)):
+        return float(v)
+    secs = 0.0
+    for part in str(v).strip().split(":"):
+        secs = secs * 60 + float(part)
+    return secs
+
+
+def spoken_hints(q) -> list[str]:
+    """The hints the host actually SAYS, in the order he says them.
+
+    generate_show_script.py builds each round as teaser=hints[0],
+    closer=hints[-1], and hints[1] is the spare it never reads on air. The
+    overlay must mirror the voice, so we rebuild that same pair here rather
+    than using q["text"] (which joins ALL three hints, spare included).
+    Falls back to the joined text if a question has no hints list."""
+    hints = q.get("hints") or []
+    pair = [h for h in dict.fromkeys([hints[0], hints[-1]]) if h] if hints else []
+    return pair or [q["text"]]
+
+
+def load_timeline(n_questions: int):
+    """Return {"starts": [...], "outro_start": float, "hints": [[...], ...] |
+    None} measured off the rendered video, or None to fall back to fixed
+    windows. None is returned (with a printed reason) whenever the file is
+    absent or doesn't cleanly describe every question, so a half-filled
+    timeline can never desync the show — better to run fixed than to run wrong.
+
+    timeline.json is one row per word: {"start", "teaser", "hint"}. "start" and
+    "outro_start" are the scoring boundaries. "teaser"/"hint" are OPTIONAL and
+    only drive the overlay — bad ones degrade to showing every hint at window
+    open, so an unusable mark costs us pacing, not points."""
+    if not os.path.exists(TIMELINE_FILE):
+        return None
+    with open(TIMELINE_FILE, "r", encoding="utf-8") as f:
+        raw = json.load(f)
+
+    rows = raw.get("windows") or []
+    outro = raw.get("outro_start")
+    if not rows or outro is None:
+        print("timeline.json present but not filled in — using fixed windows. "
+              "Set each window's 'start' and the 'outro_start'.")
+        return None
+
+    if len(rows) != n_questions:
+        print(f"timeline.json has {len(rows)} windows but there are "
+              f"{n_questions} questions — using fixed windows.")
+        return None
+    if any(r.get("start") is None for r in rows):
+        print("timeline.json is missing a window 'start' — using fixed windows.")
+        return None
+
+    starts = [parse_mark(r["start"]) for r in rows]
+    bounds = starts + [parse_mark(outro)]
+    if any(b <= a for a, b in zip(bounds, bounds[1:])):
+        print("timeline.json marks are not strictly increasing "
+              "(each window must open after the previous one) — using fixed windows.")
+        return None
+    return {"starts": starts, "outro_start": bounds[-1],
+            "hints": load_hint_marks(rows, bounds)}
+
+
+def load_hint_marks(rows: list[dict], bounds: list[float]):
+    """Validate the optional per-window teaser/hint marks, or return None to
+    show every hint at window open. Each mark must land inside its own window:
+    a hint that fires before its window opens would be on screen while the host
+    is still revealing the previous word, and one that fires after it closes
+    would never show at all. All-or-nothing — a half-marked show would reveal
+    hints on some words and not others, which just looks broken on stream."""
+    out = []
+    for i, row in enumerate(rows):
+        marks = [row.get("teaser"), row.get("hint")]
+        if all(m is None for m in marks):
+            if out:
+                print(f"timeline.json window {i + 1} has no teaser/hint marks "
+                      "while others do — showing all hints at window open.")
+                return None
+            return None
+        if any(m is None for m in marks):
+            print(f"timeline.json window {i + 1} has only one of teaser/hint — "
+                  "showing all hints at window open.")
+            return None
+
+        marks = [parse_mark(m) for m in marks]
+        if marks[1] <= marks[0]:
+            print(f"timeline.json window {i + 1}: 'hint' must come after "
+                  "'teaser' — showing all hints at window open.")
+            return None
+        if not (bounds[i] <= marks[0] and marks[1] < bounds[i + 1]):
+            print(f"timeline.json window {i + 1}: teaser/hint fall outside the "
+                  f"window ({bounds[i]:.0f}s–{bounds[i + 1]:.0f}s) — "
+                  "showing all hints at window open.")
+            return None
+        out.append(marks)
+
+    # A window opens on the host revealing the PREVIOUS word, so the teaser
+    # always lands a few seconds later. Teasers sitting on top of their starts
+    # means the 'start' marks are really teaser marks — which would leave each
+    # reveal INSIDE the previous window, letting chat score by copying the host.
+    # Not fatal (scoring still runs), but it is almost certainly a mis-measure.
+    if sum(t - bounds[i] < 1.0 for i, (t, _) in enumerate(out)) > 1:
+        print("WARNING: teaser marks sit on their window 'start' marks. A window "
+              "should open on the host revealing the PREVIOUS answer, seconds "
+              "BEFORE this word's teaser. If 'start' is really where the teaser "
+              "begins, every answer is being revealed while its window is still "
+              "open — re-measure 'start' to the reveal, or chat can copy the host.")
+    return out or None
 
 
 # ------------------------------- the scorer -------------------------------
@@ -178,8 +305,17 @@ class Scorer:
     _q = None
     _ends = None
 
-    def open_question(self, q):
-        ends = time.time() + self.window_seconds
+    def _open(self, q, close_epoch, text=None):
+        """Open q's window NOW; tell the overlay it closes at close_epoch
+        (absolute epoch seconds, so the countdown ring shows the real
+        remaining time whatever the window's length).
+
+        `text` is what the lower-third shows right now — by default BOTH spoken
+        hints (never the spare, which the host doesn't read), or "" when hint
+        marks will reveal them one at a time later in the window (the overlay
+        hides the bar on empty text). Scoring is live from this instant either
+        way: an empty bar means the host hasn't given the first hint yet, not
+        that answers are closed."""
         with self.lock:
             self.window_open = True
             self.window_open_at = datetime.now(timezone.utc)
@@ -187,21 +323,84 @@ class Scorer:
             self.correct_count = 0
             self.scored_channels = set()
             self._q = {"number": q.get("number"), "total": self._total,
-                       "text": q["text"]}
-            self._ends = ends
-            self.publish_state(question=self._q, window_ends_at=ends,
+                       "text": "  •  ".join(spoken_hints(q))
+                               if text is None else text}
+            self._ends = close_epoch
+            self.publish_state(question=self._q, window_ends_at=close_epoch,
                                phase="question")
-        print(f"\nQ{q.get('number')}: {q['text']}")
-        print(f"Window open for {self.window_seconds}s. Accepted: {q['answers']}")
+        remaining = max(0.0, close_epoch - time.time())
+        print(f"\nQ{q.get('number')}: {q.get('word', q['text'])}")
+        print(f"Window open for {remaining:.0f}s. Accepted: {q['answers']}")
 
-        # Let it run for the window, then close.
-        time.sleep(self.window_seconds)
+    def _show(self, text):
+        """Republish the open question with more hint text on screen. Only the
+        lower-third changes — the window, the clock and the scores don't."""
+        with self.lock:
+            self._q = dict(self._q, text=text)
+            self.publish_state(question=self._q, window_ends_at=self._ends,
+                               phase="question")
+
+    def _close(self):
         with self.lock:
             self.window_open = False
             self._ends = None
             self.publish_state(question=self._q, window_ends_at=None,
                                phase="reveal")
         print(f"Time! {self.correct_count} correct answer(s) this question.")
+
+    def open_question(self, q):
+        """FIXED mode: open now, run window_seconds, close. Windows are
+        back-to-back, so the reveal of q lands as the next window opens."""
+        close_epoch = time.time() + self.window_seconds
+        self._open(q, close_epoch)
+        time.sleep(max(0.0, close_epoch - time.time()))
+        self._close()
+
+    def run_timeline(self, questions, t0, starts, outro_start, hint_marks=None):
+        """TIMELINE mode: open each window at its measured second-mark
+        (t0 + starts[i]) and close it when the next window opens — for the
+        last, at outro_start. t0 is the wall-clock instant of the video-start
+        sync press, so all marks are anchored to the same clock the chat
+        timestamps use. The gaps before Q1 (intro) and between windows are
+        just waited out; the board stays on its last state meanwhile.
+
+        A window opens on the host REVEALING THE PREVIOUS WORD, several seconds
+        before he gives this word's first hint — so with hint_marks the bar
+        starts empty, the teaser appears when spoken, and the long hint then
+        replaces it. Without marks both hints sit on screen from the open,
+        which hands chat the closer early: fill the marks before a real show."""
+        bounds = list(starts) + [outro_start]
+        for i, q in enumerate(questions):
+            open_epoch = t0 + bounds[i]
+            close_epoch = t0 + bounds[i + 1]
+            wait = open_epoch - time.time()
+            if wait > 0:
+                time.sleep(wait)
+            elif wait < -1:
+                print(f"  (running {-wait:.0f}s behind the mark for "
+                      f"Q{q.get('number')} — check the sync press)")
+
+            marks = hint_marks[i] if hint_marks else None
+            self._open(q, close_epoch, text="" if marks else None)
+
+            if marks:
+                # One hint on screen at a time, each REPLACING the last at the
+                # second the host says it. Not cumulative: the two stacked make
+                # the lower-third tall enough to collide with the leaderboard,
+                # and the screen should follow the voice — when he moves to the
+                # long hint, so does the bar.
+                hints = spoken_hints(q)
+                for n, mark in enumerate(marks[:len(hints)], 1):
+                    gap = (t0 + mark) - time.time()
+                    if gap > 0:
+                        time.sleep(gap)
+                    self._show(hints[n - 1])
+                    print(f"  hint {n}/{len(hints)}: {hints[n - 1]}")
+
+            rest = close_epoch - time.time()
+            if rest > 0:
+                time.sleep(rest)
+            self._close()
 
 
 # --------------------------------- main ---------------------------------
@@ -241,9 +440,26 @@ def main():
     poller = threading.Thread(target=scorer.poll_loop, daemon=True)
     poller.start()
 
+    timeline = load_timeline(len(questions))
+    if timeline:
+        print(f"\nTIMELINE mode: {len(questions)} windows measured from the video "
+              f"(Q1 opens at {timeline['starts'][0]:.0f}s, last closes at "
+              f"{timeline['outro_start']:.0f}s).")
+        print("Hints: revealed on screen as the host speaks them."
+              if timeline["hints"] else
+              "Hints: ALL shown at window open (no 'hints' marks in timeline.json).")
+    else:
+        print(f"\nFIXED mode: {scorer.window_seconds}s per window, back-to-back "
+              "(no valid timeline.json).")
+
     input("\nPress Enter the moment the video starts to sync the show  >  ")
-    for q in questions:
-        scorer.open_question(q)  # blocks for window_seconds, then auto-advances
+    t0 = time.time()
+    if timeline:
+        scorer.run_timeline(questions, t0, timeline["starts"],
+                            timeline["outro_start"], timeline["hints"])
+    else:
+        for q in questions:
+            scorer.open_question(q)  # blocks for window_seconds, then auto-advances
 
     scorer.running = False
     print("\nFinal leaderboard:")
