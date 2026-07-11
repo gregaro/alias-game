@@ -212,11 +212,13 @@
   .timer.low .timer__fill { stroke: var(--danger); }
   .timer.low { animation: shake 0.9s ease-in-out infinite; }
 
-  /* Answer reveal: same bar, unmistakably not a hint. The ring is already gone
-     by now (the scorer sends no window_ends_at during a reveal). */
+  /* Answer reveal: same bar, unmistakably not a hint. */
   .qbar.reveal { border-color: rgba(52, 224, 161, 0.45); }
   .qbar.reveal .qtext { color: var(--leader); font-weight: 600; }
   .qbar.reveal .qbadge { background: var(--leader); }
+  /* No clock next to an answer — there is nothing left to count. Hidden rather
+     than removed, so the bar keeps its shape and the text doesn't jump. */
+  .qbar.reveal .timer { visibility: hidden; }
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-2px); }
