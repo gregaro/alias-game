@@ -9,8 +9,9 @@ questions.json:
   show_script.txt   human reference: window boundaries + labels, for
                     understanding flow and scorer timing (NOT for TTS —
                     its markers would be read aloud)
-  show_script_tts.txt  paste-ready ElevenLabs sheet: one clean Armenian
-                    block per window, the only tag being the <break> beat
+  show_script_tts.txt  paste-ready HeyGen script: clean Armenian with inline
+                    [pause N seconds] markers (HeyGen honors them); one clip
+                    per window, guessing padding + scorer handle the rest
 
 Each word is a 2-hint round inside ONE window_seconds window: the teaser
 opens it, a 3-4s beat later the confident closer lands, then guessing
@@ -47,10 +48,6 @@ OUT_JSON = os.path.join(HERE, "../questions/show_script.json")
 OUT_TXT = os.path.join(HERE, "../questions/show_script.txt")
 OUT_TTS = os.path.join(HERE, "../questions/show_script_tts.txt")
 
-# The game beat between teaser and hint. SSML break, Eleven v2 models only
-# (v3 rejects SSML — swap for [pause]). 3s is ElevenLabs' per-break maximum.
-BEAT = '<break time="3.0s" />'
-
 
 def _write_atomic(path: str, text: str):
     tmp = path + ".tmp"
@@ -79,15 +76,18 @@ def episode_words(frame: dict, hints_by_word: dict) -> list[dict]:
 
 def assemble_tts(intro: str, windows: list[dict], final_reveal: str,
                  outro: str) -> str:
-    """Paste-ready ElevenLabs sheet: one clean Armenian block per window,
-    the ONLY tag being the teaser->hint beat. Everything a human needs to
-    know is a `#` comment line — never selected, never narrated. Copy one
-    block at a time into the TTS box; the guessing time after the hint is
-    added later in video editing, not spoken."""
+    """Paste-ready HeyGen script. HeyGen honors inline `[pause N seconds]`
+    markers, so the 3-4s beat between the two hints is embedded right in the
+    text and each window is ONE clip — no editor splicing to place the beat.
+    Guessing time (idle host) still fills the rest of the window in the
+    editor, and the scorer enforces the real boundary. Each window opens by
+    announcing the PREVIOUS word's answer (its window is already closed).
+    Copy one block at a time; the `#` lines are never narrated."""
     lines = [
-        "# ElevenLabs paste sheet. Copy ONE Armenian block at a time into the",
-        f"# TTS box. Only tag is the beat: {BEAT} (Eleven v2 models). On v3,",
-        "# replace it with [pause]. NEVER paste the # comment lines.",
+        "# HeyGen script — inline [pause N seconds] markers ARE honored by",
+        "# HeyGen, so each window below is one clip (the beat is baked in).",
+        "# Render each block as its own clip; after the hint, add idle/guessing",
+        "# time in the editor to fill the window. NEVER paste the # comment lines.",
         "",
         "# --- INTRO ---",
         intro,
@@ -95,9 +95,12 @@ def assemble_tts(intro: str, windows: list[dict], final_reveal: str,
     ]
     for i, w in enumerate(windows, 1):
         parts = [w["reveal_prev"]] if w["reveal_prev"] else []
-        parts += [w["lead_in"], w["teaser"]]
-        speech = " ".join(parts) + " " + BEAT + " " + w["closer"]
-        lines += [f"# --- WINDOW {i}: {w['word']} ---", speech, ""]
+        parts += [w["lead_in"], w["teaser"], "[pause 4 seconds]", w["closer"]]
+        lines += [
+            f"# --- WINDOW {i}: {w['word']} ---",
+            " ".join(parts),
+            "",
+        ]
     lines += ["# --- OUTRO ---", final_reveal + " " + outro, ""]
     return "\n".join(lines)
 
@@ -126,7 +129,7 @@ def assemble_txt(intro: str, words: list[dict], outro: str,
         lines += [
             f"[lead-in] {w['lead_in']}",
             f"[teaser]  {w['teaser']}",
-            "[pause ~3-4s]",
+            "[pause 4 seconds]",
             f"[hint]    {w['closer']}",
             "[viewers keep typing until the window ends]",
             f"<<< CLOSE 0:{window_seconds:02d}  (next window opens immediately)",
@@ -205,7 +208,7 @@ def main():
 
     print(f"Wrote:\n  {OUT_TXT}  (human reference)\n"
           f"  {OUT_JSON}  (automation)\n"
-          f"  {OUT_TTS}  (paste into ElevenLabs)\n")
+          f"  {OUT_TTS}  (paste into HeyGen)\n")
     print(tts)
 
 
