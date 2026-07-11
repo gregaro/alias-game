@@ -8,21 +8,29 @@ speed decay, and renders a live leaderboard on the stream. The words come from l
 trend research, the hints are written by an LLM with a sarcastic party-host persona,
 and the host's video is generated with TTS + avatar tools.
 
-> **Status:** pre-launch. The full pipeline works end-to-end; next milestone is a dress
-> rehearsal on an unlisted stream. This README evolves with the project.
+> **Status:** pre-launch. The full pipeline works end-to-end and a first episode has been
+> rendered and live-tested on YouTube; next milestone is a dress rehearsal on an unlisted
+> stream. This README evolves with the project.
 
 ## How a round works
 
-1. The avatar host reads a **short teaser hint** (4–5 words, oblique and funny) — the
-   answer window opens. Fast, clever guessers earn the most points.
-2. A **3–4 second beat** later the host reads a **fuller, easier hint** — most players
+1. The avatar host reads a **short teaser hint** (4–5 words, oblique and funny). Fast,
+   clever guessers earn the most points.
+2. A **4-second beat** later the host reads a **fuller, easier hint** — most players
    guess here, for fewer points (speed decay: first correct answer scores highest).
-3. The whole word runs inside a single **20-second window**. To keep the answer out of
-   the scored window, the host announces it as the *next* word begins ("that was X —
-   now, next up…"), so the show is a clean run of 20-second windows: intro → 10 words →
+3. To keep the answer out of the scored window, the host announces it as the *next* word
+   begins ("that was X — now, next up…"). So a word's window **closes exactly where its
+   answer is spoken**, and nobody can score by copying the host. Intro → 10 words →
    outro, the last answer landing in the outro. Correct answers pop onto the on-stream
    leaderboard live — one scoring chance per person per word; scores accumulate across
    the episode.
+
+Windows are **not a fixed length**. The host's pauses and each word's speech run
+different durations, so the real boundaries are measured off the rendered video into
+`timeline.json`; the scorer replays them against a single "press Enter when the video
+starts" sync. The overlay follows the host's *voice* — the previous answer while he
+announces it, then the teaser, then the long hint replacing it — while scoring runs on
+its own clock underneath.
 
 ## Architecture
 
@@ -44,8 +52,10 @@ an LLM or TTS during the broadcast.
 │ hint_generator agent ── 3 hints/word │   │   state.json  ◄─── single source       │
 │        │                             │   │        │            of truth           │
 │        ▼                             │   │        ▼                               │
-│ human review → TTS → avatar clips    │   │  overlay server (Flask) → overlay.html │
-│ (ElevenLabs → D-ID/HeyGen mp4)       │   │        │ polled as OBS Browser Source  │
+│ human review → HeyGen episode video  │   │  overlay server (Flask) → overlay.html │
+│        │                             │   │        │ polled as OBS Browser Source  │
+│        ▼                             │   │        ▼                               │
+│ measure timeline.json off the video  │──▶│  (scorer replays those marks live)     │
 └──────────────────────────────────────┘   │        ▼                               │
                                            │  OBS composites overlay over the       │
                                            │  pre-rendered host video → YouTube     │
@@ -87,15 +97,20 @@ python code/agents/generate_show_script.py # stage 4: hints -> the episode clip 
 - **`difficulty_monitor`** (wired, not yet in the loop) will tune hint difficulty from
   live solve-time stats.
 - **Stage 3 is plain code, no LLM:** it writes the reviewed hints into
-  `questions.json` for the scorer, keeping existing scoring settings. Accepted-answer
-  variants (spellings, transliterations) still get a human pass before the show.
+  `questions.json` for the scorer, keeping existing scoring settings. Accepted answers
+  are then curated by hand — matching is exact, so every form a viewer might type has to
+  be listed (Armenian spellings, both Latin transliteration conventions, the English
+  name, nicknames, Russian loanwords in Cyrillic). Stage 3 carries those hand-added
+  answers forward on regeneration rather than clobbering them.
 - **`show_scripter`** (stage 4) writes the host's frame around the hints — episode
   intro with the rules, a spoiler-free lead-in before each word, a reveal line after
   each answer window (often calling back to a hint's joke), and the outro — in the
-  same persona, so the episode sounds like one person talking. The output,
-  `show_script.txt`, interleaves frame + hints with `[PAUSE]`/`[WINDOW]` markers:
-  it's the text that goes to TTS clip by clip. The generator validates that the frame
-  covers every word in order and that no lead-in leaks a target word.
+  same persona, so the episode sounds like one person talking. It emits
+  `show_script.txt` (human reference), `.json` (automation) and `_tts.txt` — the
+  paste-ready HeyGen sheet. HeyGen honors inline `[pause 4 seconds]` markers, so the
+  beat between a word's two hints is baked into the text and each round renders as one
+  clip. The generator validates that the frame covers every word in order and that no
+  lead-in leaks a target word.
 
 Model routing is per-agent and provider-agnostic (Anthropic / OpenAI / any model on
 OpenRouter). Current lineup after side-by-side A/B tests on real Armenian output:
@@ -117,8 +132,12 @@ API-suggested interval, and scores answers while a question's window is open:
   listed per question instead.
 - **Fairness rules learned the hard way:** score by stable `channelId`, not display
   name; only count messages published after the window opened (no backlog sniping);
-  generous 20–30s windows because ultra-low-latency YouTube still puts viewers 3–10s
+  generous windows (~30s) because ultra-low-latency YouTube still puts viewers 3–10s
   behind the stream.
+- **Two clocks, deliberately.** Scoring covers the whole window — the span in which the
+  answer is still secret. The overlay runs on its own clock, following the host's voice.
+  A half-filled or inconsistent `timeline.json` is rejected with a printed reason and the
+  scorer falls back to fixed windows: better to run plain than to run out of sync.
 
 ## Repository layout
 
@@ -128,9 +147,10 @@ code/
 │                trend fetchers, and the two per-show pipeline commands
 ├── overlay/     Flask server + transparent 1920x1080 overlay page (leaderboard,
 │                question lower-third, countdown ring) polled by OBS
-├── questions/   questions.json (answer windows, points decay, questions) and the
-│                per-episode show script: show_script.txt (human reference),
-│                .json (automation), _tts.txt (paste into ElevenLabs)
+├── questions/   questions.json (points decay, questions, curated answers),
+│                timeline.json (second-marks measured off the rendered video), and
+│                the per-episode show script: show_script.txt (human reference),
+│                .json (automation), _tts.txt (paste into HeyGen)
 ├── scorer/      YouTube auth (OAuth + token cache), chat poller/scorer, Armenian
 │                answer normalization
 └── secrets/     gitignored: OAuth client + cached token
@@ -158,10 +178,11 @@ at `http://<pi-ip>:8080`, 1920×1080, layered above the host video.
 - [x] Agent pipeline: trends → words → hints → questions + clip script, with model
       A/B testing and fallbacks
 - [x] First avatar clip (TTS → talking-head video)
-- [ ] Generate a full episode's clips; dress rehearsal on an unlisted stream
+- [x] Full episode rendered as one HeyGen video, with inline pause markers
+- [x] Question advancement automated in sync with the video (`timeline.json`)
+- [ ] Dress rehearsal on an unlisted stream
 - [ ] First public episode
 - [ ] Feed live solve stats back into hint difficulty (difficulty_monitor)
-- [ ] Automate question advancement in sync with the video
 
 *Built as a scrappy solo project — simple, debuggable code over abstraction,
 and everything optimized for shipping a fun first episode.*
