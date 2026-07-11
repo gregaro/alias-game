@@ -11,9 +11,15 @@ question, not a design input.
 
 ## Core architecture
 
-- **Pre-render everything.** The host is scripted, so all avatar clips are
-  generated ahead of time (ElevenLabs TTS -> D-ID/HeyGen avatar mp4). The only
-  *live* parts are chat ingestion, scoring, and the overlay.
+- **Pre-render everything.** The host is scripted, so the whole episode is
+  rendered ahead of time as one HeyGen video. HeyGen honors inline
+  `[pause N seconds]` markers, so the beat between a word's two hints is baked
+  into the script text and each round is one clip. The only *live* parts are
+  chat ingestion, scoring, and the overlay.
+- **The video is the clock.** Because the pauses and each word's speech run
+  different lengths, windows are NOT a fixed number of seconds. Second-marks are
+  measured off the rendered video into `questions/timeline.json`, and the scorer
+  replays them against a single "press Enter when the video starts" sync.
 - **`state.json` is the single source of truth.** The scorer writes it; the
   overlay reads it. They are decoupled through this one file. Never couple them
   any other way.
@@ -46,7 +52,9 @@ code/
 │   ├── generate_show_script.py  Stage four: show_scripter agent writes the
 │   │                   host frame (intro/lead-ins/reveals/outro); weaves in
 │   │                   the hints and writes ../questions/show_script.txt
-│   │                   (+ .json) — the text you record clip by clip.
+│   │                   (human reference), .json (automation) and
+│   │                   _tts.txt — the paste-ready HeyGen sheet, with the
+│   │                   beat between hints as an inline [pause 4 seconds].
 │   ├── fetch_topics.py Topic fetchers: Google Trends RSS (geo=AM + US),
 │   │                   hy-Wikipedia top reads, YouTube trending in AM
 │   │                   (reuses the scorer's OAuth). A failed source is a
@@ -74,15 +82,24 @@ code/
 │                       (epoch seconds), leaderboard ([{name, score}]).
 │                       Gitignored — runtime artifact.
 ├── questions/
-│   ├── questions.json  window_seconds, points (decay schedule), min_points,
-│   │                   and questions[] with text + answers[] variants.
-│   └── show_script.txt / .json  Per-episode clip script (host frame +
-│                       hints with [PAUSE]/[WINDOW] markers) for TTS/avatar.
+│   ├── questions.json  points (decay schedule), min_points, window_seconds
+│   │                   (FIXED-mode fallback only), and questions[] with
+│   │                   text + hints[] + answers[] variants. The answers are
+│   │                   hand-curated; stage 3 carries them forward on regen.
+│   ├── timeline.json   Second-marks measured off the rendered video: one row
+│   │                   per word {word, start, teaser, hint} + outro_start.
+│   │                   `start` is where the host announces the PREVIOUS
+│   │                   word's answer — that is the window boundary. Committed
+│   │                   (it describes a specific episode's video).
+│   └── show_script.txt / .json / _tts.txt  Per-episode clip script; _tts.txt
+│                       is the one you paste into HeyGen.
 ├── scorer/
 │   ├── chat_scorer.py  Finds the active broadcast's liveChatId, polls
 │   │                   liveChatMessages.list, scores answers, writes
-│   │                   ../overlay/state.json. You press Enter to open each
-│   │                   question's answer window (manual orchestrator).
+│   │                   ../overlay/state.json. You press Enter ONCE, the
+│   │                   moment the video starts, and it replays timeline.json
+│   │                   from there (FIXED-mode fallback if that file is
+│   │                   missing or inconsistent).
 │   ├── normalize.py    Answer normalization + matching. Armenian-aware.
 │   ├── youtube_auth.py OAuth with token caching. First run opens a browser;
 │   │                   later runs refresh silently. Reads/writes ../secrets/.
@@ -154,6 +171,25 @@ ABOVE the avatar Media Source.
   the answer window opened. Never score pre-window chatter.
 - **Generous answer windows (20–30s).** YouTube ultra-low latency still puts
   viewers ~3–10s behind, plus poll delay. Don't score to the second.
+- **A window closes exactly where the host says the answer.** That is why
+  `timeline.json`'s `start` marks the host announcing the PREVIOUS word's
+  answer, not the current word's first hint. Score any later and chat can just
+  copy the host off the video.
+- **Scoring and display are two different clocks.** Scoring runs the whole
+  window (the span in which the answer is secret). The overlay instead follows
+  the host's voice: previous answer while he announces it, then the teaser, then
+  the long hint replacing it, with the ring running teaser -> end of window.
+  Don't collapse them back into one.
+- **The overlay only shows hints the host actually SAYS.** `questions.json`
+  holds three hints per word, but the script speaks only the first and last —
+  the middle one is a spare. Never render it.
+- **Answer matching is exact on the normalized form.** Every spelling a viewer
+  might type has to be listed in `answers[]` — transliterations, the English
+  name, nicknames, Russian loanwords in Cyrillic. A missing variant is a viewer
+  who knew the answer and scored zero.
+- **Don't let the overlay reflow.** Hide things with `visibility: hidden`, not
+  `display: none`: an element leaving the flex row shifts the text sideways for
+  a frame, which reads as a glitch on stream.
 
 ## Armenian text handling (normalize.py)
 
@@ -172,13 +208,23 @@ auto-translation does NOT affect API data), so matching runs on real Armenian:
 ## Status
 
 Phases 0–4 done: accounts/auth, test stream, one avatar clip, live overlay,
-chat reader + scoring. **Next: Phase 5** — generate a full episode's clips and
-run an end-to-end dress rehearsal for friends on an unlisted stream.
+chat reader + scoring. **Phase 5 in progress** — a full 10-word episode is
+scripted and rendered, and a first live test on YouTube drove the timeline
+scorer and the overlay's answer/hint/countdown behaviour.
+
+Before the next run:
+
+- Fill `teaser`/`hint` marks for all 10 rows in `questions/timeline.json`.
+  Without them the scorer falls back to showing both hints at window open,
+  which spoils the closer and skips the answer reveal.
+- Set `rehearsal_mode: false` in `agents/config.yaml`.
 
 ## Open decisions
 
 - Niche/topic, host persona (name/voice/look), episode cadence + length.
-- Show language: Armenian, English, or multilingual.
+
+(Show language is settled: **Armenian** — hints, host script and overlay chrome
+are all Armenian.)
 
 ## Style
 
