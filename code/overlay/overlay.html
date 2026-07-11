@@ -285,7 +285,7 @@
   <div class="qbar" id="qbar">
     <div class="qbadge">
       <span class="qbadge__num" id="qnum">–</span>
-      <span class="qbadge__of" id="qof">Q</span>
+      <span class="qbadge__of" id="qof">Հարց</span>
     </div>
     <div class="qtext" id="qtext"></div>
     <div class="timer" id="timer">
@@ -361,7 +361,8 @@
     const bar = document.getElementById("qbar");
     if (!q || !q.text) { bar.classList.remove("show"); return; }
     document.getElementById("qnum").textContent = q.number ?? "–";
-    document.getElementById("qof").textContent = q.total ? ("of " + q.total) : "Q";
+    // Reads as "2" over "10-ից" — i.e. 2 out of 10.
+    document.getElementById("qof").textContent = q.total ? (q.total + "-ից") : "Հարց";
     document.getElementById("qtext").textContent = q.text;
     // "reveal" is the host announcing a word's answer. Colour it apart from the
     // hints so nobody reads the answer as one more clue and keeps guessing.
