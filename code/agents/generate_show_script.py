@@ -10,8 +10,11 @@ questions.json:
                     understanding flow and scorer timing (NOT for TTS —
                     its markers would be read aloud)
   show_script_tts.txt  paste-ready HeyGen script: clean Armenian with inline
-                    [pause N seconds] markers (HeyGen honors them); one clip
-                    per window, guessing padding + scorer handle the rest
+                    [pause N seconds] markers. HeyGen does NOT parse these
+                    from pasted text — they're a placeholder telling you
+                    where and how long a pause to insert by hand via
+                    HeyGen's AI Studio pause tool. One clip per window,
+                    guessing padding + scorer handle the rest.
 
 Each word is a 2-hint round inside ONE window_seconds window: the teaser
 opens it, a 3-4s beat later the confident closer lands, then guessing
@@ -76,18 +79,23 @@ def episode_words(frame: dict, hints_by_word: dict) -> list[dict]:
 
 def assemble_tts(intro: str, windows: list[dict], final_reveal: str,
                  outro: str) -> str:
-    """Paste-ready HeyGen script. HeyGen honors inline `[pause N seconds]`
-    markers, so the 3-4s beat between the two hints is embedded right in the
-    text and each window is ONE clip — no editor splicing to place the beat.
-    Guessing time (idle host) still fills the rest of the window in the
-    editor, and the scorer enforces the real boundary. Each window opens by
-    announcing the PREVIOUS word's answer (its window is already closed).
-    Copy one block at a time; the `#` lines are never narrated."""
+    """Paste-ready HeyGen script. The inline `[pause N seconds]` markers are
+    NOT parsed by HeyGen from pasted text — add the actual pause via HeyGen's
+    AI Studio pause tool at that point in the clip, for that many seconds,
+    then delete the marker text itself before rendering. Once inserted by
+    hand, the 3-4s beat between the two hints lives in the same clip as the
+    rest of the window — no editor splicing needed to place it. Guessing
+    time (idle host) still fills the rest of the window in the editor, and
+    the scorer enforces the real boundary. Each window opens by announcing
+    the PREVIOUS word's answer (its window is already closed). Copy one
+    block at a time; the `#` lines are never narrated."""
     lines = [
-        "# HeyGen script — inline [pause N seconds] markers ARE honored by",
-        "# HeyGen, so each window below is one clip (the beat is baked in).",
-        "# Render each block as its own clip; after the hint, add idle/guessing",
-        "# time in the editor to fill the window. NEVER paste the # comment lines.",
+        "# HeyGen script. [pause N seconds] markers are NOT read by HeyGen —",
+        "# they mark where to add a real pause by hand via HeyGen's AI Studio",
+        "# pause tool, for that many seconds; delete the marker text once the",
+        "# pause is inserted. Render each block as its own clip; after the",
+        "# hint, add idle/guessing time in the editor to fill the window.",
+        "# NEVER paste the # comment lines.",
         "",
         "# --- INTRO ---",
         intro,

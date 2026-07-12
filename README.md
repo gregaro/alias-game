@@ -107,10 +107,11 @@ python code/agents/generate_show_script.py # stage 4: hints -> the episode clip 
   each answer window (often calling back to a hint's joke), and the outro — in the
   same persona, so the episode sounds like one person talking. It emits
   `show_script.txt` (human reference), `.json` (automation) and `_tts.txt` — the
-  paste-ready HeyGen sheet. HeyGen honors inline `[pause 4 seconds]` markers, so the
-  beat between a word's two hints is baked into the text and each round renders as one
-  clip. The generator validates that the frame covers every word in order and that no
-  lead-in leaks a target word.
+  paste-ready HeyGen sheet. HeyGen does not parse inline `[pause 4 seconds]` markers
+  from pasted text; they mark where to add a real pause of that length by hand via
+  HeyGen's AI Studio pause tool before rendering, so the beat between a word's two
+  hints ends up baked into one clip per round. The generator validates that the frame
+  covers every word in order and that no lead-in leaks a target word.
 
 Model routing is per-agent and provider-agnostic (Anthropic / OpenAI / any model on
 OpenRouter). Current lineup after side-by-side A/B tests on real Armenian output:
