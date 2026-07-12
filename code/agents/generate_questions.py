@@ -11,18 +11,38 @@ differently). Transliterations and alternate names (spiderman, ծույլ for
 ալարկոտ) still need a human pass — the script prints a reminder for
 words that likely need it.
 """
+import argparse
 import json
 import os
 import re
+import sys
 from pathlib import Path
 
 import db
 
 HERE = Path(__file__).parent
-QUESTIONS_FILE = HERE.parent / "questions" / "questions.json"
+sys.path.insert(0, str(HERE.parent))        # code/, for episode.py
+import episode
 
 DEFAULTS = {"window_seconds": 25, "points": [10, 8, 7, 6, 5, 4, 3, 2],
             "min_points": 1}
+
+
+def curated_answers() -> dict[str, list[str]]:
+    """word -> hand-curated answers, gathered from EVERY past episode, newest
+    first. Answers are the one thing here a human edits by hand, and matching is
+    exact — losing them means a viewer who knew the answer scores zero. Scanning
+    all episodes (not just this one) means a word that comes back around keeps
+    its transliterations instead of starting from scratch."""
+    kept: dict[str, list[str]] = {}
+    for name in reversed(episode.list_episodes()):      # newest first
+        f = episode.EPISODES_DIR / name / episode.QUESTIONS
+        if not f.is_file():
+            continue
+        for q in json.load(open(f, encoding="utf-8")).get("questions", []):
+            if q.get("word") and q.get("answers"):
+                kept.setdefault(q["word"], q["answers"])
+    return kept
 
 
 def answer_variants(word: str) -> list[str]:
@@ -38,22 +58,22 @@ def answer_variants(word: str) -> list[str]:
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Stage 3: hints -> questions.json")
+    episode.add_argument(parser)
+    args = parser.parse_args()
+    QUESTIONS_FILE = episode.path(episode.QUESTIONS, args.episode)
+    print(f"Episode: {args.episode or episode.current()}\n")
+
     show = db.latest_state("hint_generator", "last_hints")
     if not show:
         raise SystemExit("No hints in the DB — run generate_hints.py first.")
 
     config = dict(DEFAULTS)
-    kept = {}
     if QUESTIONS_FILE.exists():
         with open(QUESTIONS_FILE, encoding="utf-8") as f:
             old = json.load(f)
         config = {k: old.get(k, v) for k, v in DEFAULTS.items()}
-        # Answers are the one thing here a human edits by hand (transliterations,
-        # alternate names, misspellings — the scorer matches EXACTLY, so they
-        # decide whether real viewers score). Regenerating hints must not throw
-        # that away, so carry forward the answers of any word that survives.
-        kept = {q["word"]: q["answers"] for q in old.get("questions", [])
-                if q.get("word") and q.get("answers")}
+    kept = curated_answers()
 
     config["questions"] = [
         {

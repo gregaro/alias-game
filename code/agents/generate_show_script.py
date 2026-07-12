@@ -34,6 +34,7 @@ must be large enough to fit reveal_prev + lead-in + both hints + real
 guessing time — likely more than 20s. Set it from the recorded clip
 length once TTS audio exists.
 """
+import argparse
 import json
 import os
 import sys
@@ -46,10 +47,14 @@ import db
 from orchestrator import Orchestrator
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-QUESTIONS_FILE = os.path.join(HERE, "../questions/questions.json")
-OUT_JSON = os.path.join(HERE, "../questions/show_script.json")
-OUT_TXT = os.path.join(HERE, "../questions/show_script.txt")
-OUT_TTS = os.path.join(HERE, "../questions/show_script_tts.txt")
+sys.path.insert(0, os.path.dirname(HERE))   # code/, for episode.py
+import episode
+
+# Set from the resolved episode in main() — every show writes into its own folder.
+QUESTIONS_FILE = None
+OUT_JSON = None
+OUT_TXT = None
+OUT_TTS = None
 
 
 def _write_atomic(path: str, text: str):
@@ -154,6 +159,17 @@ def assemble_txt(intro: str, words: list[dict], outro: str,
 
 
 def main():
+    global QUESTIONS_FILE, OUT_JSON, OUT_TXT, OUT_TTS
+    parser = argparse.ArgumentParser(description="Stage 4: hints -> clip script")
+    episode.add_argument(parser)
+    args = parser.parse_args()
+    ep = episode.resolve(args.episode)
+    QUESTIONS_FILE = str(ep / episode.QUESTIONS)
+    OUT_JSON = str(ep / episode.SCRIPT_JSON)
+    OUT_TXT = str(ep / episode.SCRIPT_TXT)
+    OUT_TTS = str(ep / episode.SCRIPT_TTS)
+    print(f"Episode: {args.episode or episode.current()}\n")
+
     show = db.latest_state("hint_generator", "last_hints")
     if not show:
         raise SystemExit("No hints in the DB — run generate_hints.py first.")

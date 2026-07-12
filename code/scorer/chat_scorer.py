@@ -36,6 +36,7 @@ Run (with youtube_auth.py, normalize.py, questions.json, state.json alongside):
     python chat_scorer.py
 """
 
+import argparse
 import json
 import os
 import sys
@@ -47,9 +48,15 @@ from youtube_auth import get_service
 from normalize import matches
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.dirname(HERE))   # code/, for episode.py
+import episode
+
 STATE_FILE = os.path.join(HERE, "../overlay/state.json")
-QUESTIONS_FILE = os.path.join(HERE, "../questions/questions.json")
-TIMELINE_FILE = os.path.join(HERE, "../questions/timeline.json")
+
+# Set from the resolved episode in main(); the loaders read them. Every show's
+# files live in their own folder, so an old episode stays runnable.
+QUESTIONS_FILE = None
+TIMELINE_FILE = None
 
 # How long an announced answer stays on the lower-third before the bar clears.
 # Long enough to read, short enough that it isn't still sitting there under the
@@ -461,6 +468,21 @@ def find_live_chat_id(service):
 
 
 def main():
+    global QUESTIONS_FILE, TIMELINE_FILE
+    parser = argparse.ArgumentParser(description="Score a live episode from chat.")
+    episode.add_argument(parser)
+    args = parser.parse_args()
+
+    # Resolve the episode BEFORE anything else: running the wrong show is worse
+    # than not running at all, so print which one loudly and fail hard if the
+    # name is unknown.
+    name = args.episode or episode.current()
+    ep = episode.resolve(name)
+    QUESTIONS_FILE = str(ep / episode.QUESTIONS)
+    TIMELINE_FILE = str(ep / episode.TIMELINE)
+    print(f"Episode: {name}"
+          f"{'  (from current_episode)' if not args.episode else '  (--episode)'}")
+
     config = load_questions()
     questions = config["questions"]
 

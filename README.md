@@ -77,11 +77,18 @@ adding an agent requires no code changes. Agents share state through a small SQL
 **One command per stage, four stages per show:**
 
 ```
+python code/agents/new_episode.py          # stage 0: new episode folder, becomes current
 python code/agents/research_words.py       # stage 1: live trends -> 10 playable words
 python code/agents/generate_hints.py       # stage 2: 3 hints per word, show-ready
 python code/agents/generate_questions.py   # stage 3: hints -> questions.json (no LLM)
 python code/agents/generate_show_script.py # stage 4: hints -> the episode clip script
 ```
+
+Every show gets its own folder (`questions/episodes/ep2-2026-07-12/`), so an old
+episode stays runnable rather than being overwritten — `chat_scorer.py --episode
+ep1-2026-07-11` replays it, timeline and curated answers included. Stages 3–4
+write into whatever `current_episode` names, so re-running a stage iterates on the
+same show instead of spawning junk folders.
 
 - **`trend_researcher`** fetches ~50 live topics (Google Trends RSS for Armenia + US,
   Armenian-Wikipedia weekly top reads, YouTube trending in Armenia) and plays ruthless
@@ -148,10 +155,13 @@ code/
 │                trend fetchers, and the two per-show pipeline commands
 ├── overlay/     Flask server + transparent 1920x1080 overlay page (leaderboard,
 │                question lower-third, countdown ring) polled by OBS
-├── questions/   questions.json (points decay, questions, curated answers),
-│                timeline.json (second-marks measured off the rendered video), and
-│                the per-episode show script: show_script.txt (human reference),
-│                .json (automation), _tts.txt (paste into HeyGen)
+├── episode.py   episode path resolution — one folder per show, so old episodes
+│                stay runnable instead of being overwritten by the next one
+├── questions/   current_episode (one line naming the active show) + episodes/
+│                <epN-YYYY-MM-DD>/ each holding that show's questions.json
+│                (points decay, questions, curated answers), timeline.json
+│                (second-marks measured off that episode's video) and show script:
+│                show_script.txt (human reference), .json, _tts.txt (paste into HeyGen)
 ├── scorer/      YouTube auth (OAuth + token cache), chat poller/scorer, Armenian
 │                answer normalization
 └── secrets/     gitignored: OAuth client + cached token

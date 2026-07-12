@@ -83,18 +83,29 @@ code/
 │   └── state.json      The shared state: phase, question, window_ends_at
 │                       (epoch seconds), leaderboard ([{name, score}]).
 │                       Gitignored — runtime artifact.
+├── episode.py          Episode paths, shared by agents/ and scorer/. ONE
+│                       FOLDER PER SHOW, so an old episode stays runnable
+│                       instead of being overwritten by the next one.
 ├── questions/
-│   ├── questions.json  points (decay schedule), min_points, window_seconds
-│   │                   (FIXED-mode fallback only), and questions[] with
-│   │                   text + hints[] + answers[] variants. The answers are
-│   │                   hand-curated; stage 3 carries them forward on regen.
-│   ├── timeline.json   Second-marks measured off the rendered video: one row
-│   │                   per word {word, start, teaser, hint} + outro_start.
-│   │                   `start` is where the host announces the PREVIOUS
-│   │                   word's answer — that is the window boundary. Committed
-│   │                   (it describes a specific episode's video).
-│   └── show_script.txt / .json / _tts.txt  Per-episode clip script; _tts.txt
-│                       is the one you paste into HeyGen.
+│   ├── current_episode One line naming the active show, e.g.
+│   │                   "ep2-2026-07-12". Show night therefore needs no extra
+│   │                   typing; `--episode <name>` overrides it to replay an
+│   │                   old show. An unknown name fails loudly — running the
+│   │                   WRONG episode live is worse than not running.
+│   └── episodes/<epN-YYYY-MM-DD>/
+│       ├── questions.json  points (decay schedule), min_points,
+│       │                   window_seconds (FIXED-mode fallback only), and
+│       │                   questions[] with text + hints[] + answers[].
+│       │                   Answers are hand-curated; stage 3 carries them
+│       │                   forward across ALL episodes, so a word that comes
+│       │                   back keeps its transliterations.
+│       ├── timeline.json   Second-marks measured off THIS episode's rendered
+│       │                   video: one row per word {word, start, teaser,
+│       │                   hint} + outro_start. `start` is where the host
+│       │                   announces the PREVIOUS word's answer — that is the
+│       │                   window boundary.
+│       └── show_script.txt / .json / _tts.txt  Clip script; _tts.txt is the
+│                           one you paste into HeyGen.
 ├── scorer/
 │   ├── chat_scorer.py  Finds the active broadcast's liveChatId, polls
 │   │                   liveChatMessages.list, scores answers, writes
@@ -121,16 +132,30 @@ python code/overlay/server.py       # overlay server, binds 0.0.0.0:8080
 python code/scorer/chat_scorer.py   # scorer (broadcast must be LIVE, not just scheduled)
 ```
 
+The scorer runs whatever `questions/current_episode` names. To replay an older
+show, pass its folder name — nothing else changes:
+
+```
+python code/scorer/chat_scorer.py --episode ep1-2026-07-11
+python code/agents/new_episode.py --list      # what episodes exist, * = current
+```
+
 Agents (need `ANTHROPIC_API_KEY`/`OPENAI_API_KEY`/`OPENROUTER_API_KEY` in
 `.env` at repo root — OpenRouter serves the Gemini-backed trend researcher):
 
 ```
-python code/agents/main.py           # demo: generate hints for one word
-python code/agents/research_words.py # per show, stage 1: trends -> word set
-python code/agents/generate_hints.py # per show, stage 2: word set -> hints
-python code/agents/generate_questions.py # stage 3: hints -> questions.json
+python code/agents/new_episode.py    # per show, stage 0: new folder + point current_episode at it
+python code/agents/research_words.py # stage 1: trends -> word set
+python code/agents/generate_hints.py # stage 2: word set -> hints
+python code/agents/generate_questions.py   # stage 3: hints -> questions.json
 python code/agents/generate_show_script.py # stage 4: hints -> clip script
+python code/agents/main.py           # demo: generate hints for one word
 ```
+
+Stages 1–2 are DB-only; stages 3–4 write into the current episode's folder (or
+`--episode`). Re-running a stage overwrites that episode rather than creating a
+new one, so iterating on words costs nothing. Run `new_episode.py` only when you
+actually start a new show.
 
 ## Setup on a new machine
 
