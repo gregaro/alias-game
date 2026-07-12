@@ -14,6 +14,8 @@ a large candidate pool from which random.sample() picks the final set.
 """
 import json
 import random
+import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -22,6 +24,13 @@ load_dotenv()  # load API keys before building any model
 import db
 from fetch_topics import fetch_all
 from orchestrator import Orchestrator
+
+# Reuse the scorer's Armenian normalizer for recent-word dedup, so the avoid
+# list collapses the same word written different ways (փռշտալ / Փռշտալ,
+# Սարդ-մարդ / Սարդ մարդ) exactly the way answer matching does. It's stdlib-only,
+# so importing it here pulls in nothing heavy.
+sys.path.insert(0, str(Path(__file__).parent.parent / "scorer"))
+from normalize import normalize
 
 WORD_COUNT = 10        # words per show
 CANDIDATE_COUNT = 25   # pool the model returns; code samples the show set
@@ -85,11 +94,18 @@ def recent_words(max_runs: int = 3) -> list[str]:
     """Words from the last few research runs (one run per show, so this is
     a ~3-show window). Older words are fair game again — with fresh hints
     a reused word is a different puzzle, and an all-time ban starves the
-    pool. The skill additionally allows ~1 repeat even inside the window."""
+    pool. The skill additionally allows ~1 repeat even inside the window.
+
+    Dedup is on the NORMALIZED form: the same word saved as `փռշտալ` one run
+    and `Փռշտալ` the next is one entry, not two. We keep the first spelling
+    seen (newest run, since runs come back newest-first) for the avoid list."""
     words: list[str] = []
+    seen: set[str] = set()
     for run in db.all_states("trend_researcher", "last_output", limit=max_runs):
         for entry in run.get("words", []):
-            if entry["word"] not in words:
+            key = normalize(entry["word"])
+            if key and key not in seen:
+                seen.add(key)
                 words.append(entry["word"])
     return words
 
