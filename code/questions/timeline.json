@@ -22,16 +22,16 @@
     "never shown on screen either — only two marks per row."
   ],
   "windows": [
-    {"word": "Գրատախտակ",   "start": null, "teaser": null, "hint": null},
-    {"word": "Դերասան",     "start": null, "teaser": null, "hint": null},
-    {"word": "Ջեռոց",       "start": null, "teaser": null, "hint": null},
-    {"word": "Փարիզ",       "start": null, "teaser": null, "hint": null},
-    {"word": "Խռմփացնել",   "start": null, "teaser": null, "hint": null},
-    {"word": "Մատուռ",      "start": null, "teaser": null, "hint": null},
-    {"word": "Վարդավառ",    "start": null, "teaser": null, "hint": null},
-    {"word": "Ճոճանակ",     "start": null, "teaser": null, "hint": null},
-    {"word": "Մեսսի",       "start": null, "teaser": null, "hint": null},
-    {"word": "Բախտագուշակ", "start": null, "teaser": null, "hint": null}
+    {"word": "Գրատախտակ",   "start": 23, "teaser": 23, "hint": 31},
+    {"word": "Դերասան",     "start": 46, "teaser": 58, "hint": "1:05"},
+    {"word": "Ջեռոց",       "start": "1:19", "teaser": "1:33", "hint": "1:41"},
+    {"word": "Փարիզ",       "start": "1:54", "teaser": "2:06", "hint": "2:15"},
+    {"word": "Խռմփացնել",   "start": "2:30", "teaser": "2:42", "hint": "2:50"},
+    {"word": "Մատուռ",      "start": "3:06", "teaser": "3:16", "hint": "3:24"},
+    {"word": "Վարդավառ",    "start": "3:38", "teaser": "3:50", "hint": "3:58"},
+    {"word": "Ճոճանակ",     "start": "4:11", "teaser": "4:25", "hint": "4:33"},
+    {"word": "Մեսսի",       "start": "4:47", "teaser": "4:57", "hint": "5:05"},
+    {"word": "Բախտագուշակ", "start": "5:19", "teaser": "5:31", "hint": "5:39"}
   ],
-  "outro_start": null
+  "outro_start": "5:52"
 }
