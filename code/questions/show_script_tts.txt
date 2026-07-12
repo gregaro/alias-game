@@ -1,7 +1,9 @@
-# HeyGen script — inline [pause N seconds] markers ARE honored by
-# HeyGen, so each window below is one clip (the beat is baked in).
-# Render each block as its own clip; after the hint, add idle/guessing
-# time in the editor to fill the window. NEVER paste the # comment lines.
+# HeyGen script. [pause N seconds] markers are NOT read by HeyGen —
+# they mark where to add a real pause by hand via HeyGen's AI Studio
+# pause tool, for that many seconds; delete the marker text once the
+# pause is inserted. Render each block as its own clip; after the
+# hint, add idle/guessing time in the editor to fill the window.
+# NEVER paste the # comment lines.
 
 # --- INTRO ---
 Բարև բոլորին, հավաքվեք էկրանների մոտ, սկսում ենք մեր բառախաղը: Ես կարդում եմ հուշումները, իսկ դուք ունեք ուղիղ քսան վայրկյան ճիշտ պատասխանը չաթում գրելու համար: Ով արագ գտավ, նա էլ կտանի ամենաշատ միավորները: Պատրաստեք ձեր մատները, խոստանում եմ, որ շատ ուրախ է լինելու:
