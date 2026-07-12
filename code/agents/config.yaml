@@ -1,7 +1,7 @@
 # Rehearsal mode: every run is a throwaway test, so recent words are NOT
 # blocked between runs. TURN THIS OFF (false) before the first real show,
 # or consecutive shows may repeat the same words.
-rehearsal_mode: true
+rehearsal_mode: false
 
 # Define an agent by adding a block here. No code changes needed.
 # Per-agent model routing lets you spend money where quality matters
