@@ -12,10 +12,11 @@ question, not a design input.
 ## Core architecture
 
 - **Pre-render everything.** The host is scripted, so the whole episode is
-  rendered ahead of time as one HeyGen video. HeyGen honors inline
-  `[pause N seconds]` markers, so the beat between a word's two hints is baked
-  into the script text and each round is one clip. The only *live* parts are
-  chat ingestion, scoring, and the overlay.
+  rendered ahead of time as one HeyGen video. The `[pause N seconds]` markers
+  in the script are NOT parsed by HeyGen — each pause is added by hand via
+  HeyGen's AI Studio pause tool at the marked spot (then the marker text is
+  deleted), so the beat between a word's two hints ends up baked into the
+  clip. The only *live* parts are chat ingestion, scoring, and the overlay.
 - **The video is the clock.** Because the pauses and each word's speech run
   different lengths, windows are NOT a fixed number of seconds. Second-marks are
   measured off the rendered video into `questions/timeline.json`, and the scorer
@@ -53,8 +54,9 @@ code/
 │   │                   host frame (intro/lead-ins/reveals/outro); weaves in
 │   │                   the hints and writes ../questions/show_script.txt
 │   │                   (human reference), .json (automation) and
-│   │                   _tts.txt — the paste-ready HeyGen sheet, with the
-│   │                   beat between hints as an inline [pause 4 seconds].
+│   │                   _tts.txt — the paste-ready HeyGen sheet; its inline
+│   │                   [pause 4 seconds] markers show where to hand-add
+│   │                   the pause in AI Studio (HeyGen doesn't parse them).
 │   ├── fetch_topics.py Topic fetchers: Google Trends RSS (geo=AM + US),
 │   │                   hy-Wikipedia top reads, YouTube trending in AM
 │   │                   (reuses the scorer's OAuth). A failed source is a
