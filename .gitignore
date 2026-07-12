@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 code/overlay/state.json
 alias_game.db
+code/testing/
