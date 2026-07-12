@@ -19,6 +19,14 @@
     --danger: #FF5468;
     --row-h: 108px;
     --row-gap: 10px;
+    /* Title-safe insets. The overlay is a flat 1920x1080 frame composited in
+       OBS; we can't react to the viewer's device. On YouTube iOS, tapping the
+       live-chat box raises the keyboard and the player CROPS the video top and
+       bottom, which used to cut the lower-third in half. Keep the leaderboard
+       and the hint bar inside these margins so they survive that crop. Bump
+       --safe-bottom if the hint still clips on a re-test. */
+    --safe-top: 96px;
+    --safe-bottom: 150px;
   }
 
   /* Transparent canvas: OBS composites everything below over your video. */
@@ -36,7 +44,7 @@
   /* ---------- Leaderboard (top-right) ---------- */
   .board {
     position: absolute;
-    top: 48px;
+    top: var(--safe-top);
     left: 48px;
     width: 560px;
     background: var(--panel);
@@ -141,7 +149,7 @@
   .qbar {
     position: absolute;
     left: 50%;
-    bottom: 64px;
+    bottom: var(--safe-bottom);
     transform: translateX(-50%);
     width: 1180px;
     display: flex;
