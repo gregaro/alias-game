@@ -153,17 +153,40 @@ def spoken_hints(q) -> list[str]:
     return pair or [q["text"]]
 
 
+def load_outro_end(raw: dict, outro_start: float):
+    """The optional mark for when the host's closing line actually FINISHES —
+    outro_start is only where it BEGINS. Bad or missing is never fatal: it only
+    disables the auto end-card trigger, never scoring, so a typo here can't
+    break the show. Fall back to a manual GET /end in that case."""
+    v = raw.get("outro_end")
+    if v is None:
+        return None
+    try:
+        t = parse_mark(v)
+    except (ValueError, TypeError):
+        print("timeline.json 'outro_end' is not a valid mark — the end card "
+              "won't trigger automatically; use GET /end instead.")
+        return None
+    if t <= outro_start:
+        print("timeline.json 'outro_end' must be AFTER 'outro_start' (it's "
+              "when the closing line finishes, not begins) — the end card "
+              "won't trigger automatically; use GET /end instead.")
+        return None
+    return t
+
+
 def load_timeline(n_questions: int):
-    """Return {"starts": [...], "outro_start": float, "hints": [[...], ...] |
-    None} measured off the rendered video, or None to fall back to fixed
-    windows. None is returned (with a printed reason) whenever the file is
-    absent or doesn't cleanly describe every question, so a half-filled
-    timeline can never desync the show — better to run fixed than to run wrong.
+    """Return {"starts": [...], "outro_start": float, "outro_end": float |
+    None, "hints": [[...], ...] | None} measured off the rendered video, or
+    None to fall back to fixed windows. None is returned (with a printed
+    reason) whenever the file is absent or doesn't cleanly describe every
+    question, so a half-filled timeline can never desync the show — better to
+    run fixed than to run wrong.
 
     timeline.json is one row per word: {"start", "teaser", "hint"}. "start" and
-    "outro_start" are the scoring boundaries. "teaser"/"hint" are OPTIONAL and
-    only drive the overlay — bad ones degrade to showing every hint at window
-    open, so an unusable mark costs us pacing, not points."""
+    "outro_start" are the scoring boundaries. "teaser"/"hint" and "outro_end"
+    are all OPTIONAL and only drive the overlay — bad ones degrade gracefully
+    (every hint at window open; no auto end card) rather than costing points."""
     if not os.path.exists(TIMELINE_FILE):
         return None
     with open(TIMELINE_FILE, "r", encoding="utf-8") as f:
@@ -191,6 +214,7 @@ def load_timeline(n_questions: int):
               "(each window must open after the previous one) — using fixed windows.")
         return None
     return {"starts": starts, "outro_start": bounds[-1],
+            "outro_end": load_outro_end(raw, bounds[-1]),
             "hints": load_hint_marks(rows, bounds)}
 
 
@@ -546,6 +570,19 @@ class Scorer:
             self.publish_state(question=self._q, window_ends_at=ends,
                                phase=phase)
 
+    def _show_endcard(self):
+        """Same effect as GET /end: switch the overlay to its after-show state
+        (leaderboard to center, confetti, thank-you note). Called automatically
+        at 'outro_end' if timeline.json marks it; otherwise hit /end by hand
+        once the outro sounds like it's wrapping up."""
+        with self.lock:
+            self._q = None
+            self._ends = None
+        self.publish_state(question=None, window_ends_at=None, phase="ended")
+        print("\nEnd card triggered.")
+        if self.log:
+            self.log.write("endcard_shown")
+
     def _close(self):
         """Stop scoring. Leaves the bar alone: whoever opens the next window
         puts this word's answer up, which is the same instant the host says it."""
@@ -574,7 +611,8 @@ class Scorer:
         self._close()
         self._display(q.get("number"), answer_text(q), None, phase="reveal")
 
-    def run_timeline(self, questions, t0, starts, outro_start, hint_marks=None):
+    def run_timeline(self, questions, t0, starts, outro_start, hint_marks=None,
+                     outro_end=None):
         """TIMELINE mode: open each window at its measured second-mark
         (t0 + starts[i]) and close it when the next window opens — for the
         last, at outro_start. t0 is the wall-clock instant of the video-start
@@ -586,7 +624,12 @@ class Scorer:
         previous word's answer while he announces it, then the teaser, then the
         long hint replacing it. The ring runs teaser -> end of window. Without
         marks both hints sit on screen from the open, which hands chat the
-        closer early: fill the marks before a real show."""
+        closer early: fill the marks before a real show.
+
+        With outro_end set, the overlay auto-switches to the after-show end
+        card the instant the host's closing line actually finishes. Without
+        it, nothing happens automatically — trigger it by hand with GET /end
+        once the outro sounds like it's wrapping up."""
         bounds = list(starts) + [outro_start]
         for i, q in enumerate(questions):
             open_epoch = t0 + bounds[i]
@@ -660,6 +703,15 @@ class Scorer:
         self._display(None, "", None, phase="reveal")
         print("\nOutro: board only, question bar cleared.")
 
+        if outro_end is not None:
+            wait = (t0 + outro_end) - time.time()
+            if wait > 0:
+                time.sleep(wait)
+            self._show_endcard()
+        else:
+            print("No 'outro_end' mark — trigger the end card by hand: "
+                  "GET /end once the outro is wrapping up.")
+
 
 # --------------------------------- main ---------------------------------
 
@@ -730,6 +782,9 @@ def main():
         print("Hints: revealed on screen as the host speaks them."
               if timeline["hints"] else
               "Hints: ALL shown at window open (no 'hints' marks in timeline.json).")
+        print(f"End card: auto at {timeline['outro_end']:.0f}s."
+              if timeline["outro_end"] is not None else
+              "End card: no 'outro_end' mark — trigger by hand with GET /end.")
     else:
         print(f"\nFIXED mode: {scorer.window_seconds}s per window, back-to-back "
               "(no valid timeline.json).")
@@ -746,7 +801,8 @@ def main():
     try:
         if timeline:
             scorer.run_timeline(questions, t0, timeline["starts"],
-                                timeline["outro_start"], timeline["hints"])
+                                timeline["outro_start"], timeline["hints"],
+                                timeline["outro_end"])
         else:
             for q in questions:
                 scorer.open_question(q)  # blocks window_seconds, then advances

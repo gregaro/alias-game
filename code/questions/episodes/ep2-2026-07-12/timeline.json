@@ -33,5 +33,6 @@
     {"word": "Մեսսի",       "start": "4:47", "teaser": "4:57", "hint": "5:05"},
     {"word": "Բախտագուշակ", "start": "5:19", "teaser": "5:31", "hint": "5:39"}
   ],
-  "outro_start": "5:52"
+  "outro_start": "5:52",
+  "outro_end": "6:11"
 }

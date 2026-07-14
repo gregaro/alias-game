@@ -41,10 +41,18 @@ TIMELINE_TEMPLATE = {
         "'hint' only drive the overlay — leave them null and every hint just shows at",
         "window open. A bad mark is printed and ignored, never scored on.",
         "",
+        "outro_end: where the host's closing line ACTUALLY FINISHES — not where the",
+        "outro begins (that's outro_start). Optional: set it and the scorer",
+        "auto-switches the overlay to the after-show end card (leaderboard to",
+        "center, confetti, thank-you note) the instant it's reached. Leave it null",
+        "and nothing happens automatically — hit /end from a browser once you see",
+        "the outro wrapping up on the video.",
+        "",
         "Run generate_questions.py first: it fills in the word list here.",
     ],
     "windows": [],
     "outro_start": None,
+    "outro_end": None,
 }
 
 

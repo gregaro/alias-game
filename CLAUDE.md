@@ -105,9 +105,13 @@ code/
 │       │                   back keeps its transliterations.
 │       ├── timeline.json   Second-marks measured off THIS episode's rendered
 │       │                   video: one row per word {word, start, teaser,
-│       │                   hint} + outro_start. `start` is where the host
-│       │                   announces the PREVIOUS word's answer — that is the
-│       │                   window boundary.
+│       │                   hint} + outro_start + outro_end. `start` is where
+│       │                   the host announces the PREVIOUS word's answer —
+│       │                   that is the window boundary. `outro_end` (optional)
+│       │                   is where the closing line actually FINISHES, not
+│       │                   where it begins (outro_start) — set it and the
+│       │                   scorer auto-fires the overlay's end card there;
+│       │                   leave it null and trigger it by hand with /end.
 │       └── show_script.txt / .json / _tts.txt  Clip script; _tts.txt is the
 │                           one you paste into HeyGen.
 ├── scorer/
@@ -271,16 +275,11 @@ auto-translation does NOT affect API data), so matching runs on real Armenian:
 ## Status
 
 Phases 0–4 done: accounts/auth, test stream, one avatar clip, live overlay,
-chat reader + scoring. **Phase 5 in progress** — a full 10-word episode is
-scripted and rendered, and a first live test on YouTube drove the timeline
-scorer and the overlay's answer/hint/countdown behaviour.
-
-Before the next run:
-
-- Fill `teaser`/`hint` marks for all 10 rows in `questions/timeline.json`.
-  Without them the scorer falls back to showing both hints at window open,
-  which spoils the closer and skips the answer reveal.
-- Set `rehearsal_mode: false` in `agents/config.yaml`.
+chat reader + scoring. **Phase 5 in progress** — three episodes exist
+(`ep1-2026-07-11`, `ep2-2026-07-12`, `ep3-2026-07-13`), each with a fully
+measured `start`/`teaser`/`hint`/`outro_end` timeline, curated answers, and an
+after-show end card that auto-triggers at `outro_end`. `rehearsal_mode` is off
+in `agents/config.yaml`.
 
 ## Open decisions
 
