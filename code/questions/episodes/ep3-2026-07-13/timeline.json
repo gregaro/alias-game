@@ -20,6 +20,17 @@
     "",
     "Run generate_questions.py first: it fills in the word list here."
   ],
-  "windows": [],
-  "outro_start": null
+  "windows": [
+    {"word": "Շառլ Ազնավուր",   "start": 25, "teaser": 25, "hint": 33},
+    {"word": "դարպասապահ",     "start": 46, "teaser": "1:00", "hint": "1:09"},
+    {"word": "գազ",       "start": "1:22", "teaser": "1:37", "hint": "1:44"},
+    {"word": "շշնջալ",       "start": "1:58", "teaser": "2:10", "hint": "2:18"},
+    {"word": "զոմբի",   "start": "2:32", "teaser": "2:48", "hint": "2:54"},
+    {"word": "լուսաբաց",      "start": "3:07", "teaser": "3:21", "hint": "3:29"},
+    {"word": "պղպեղ",    "start": "3:42", "teaser": "3:57", "hint": "4:04"},
+    {"word": "մրջյուն",     "start": "4:17", "teaser": "4:32", "hint": "4:41"},
+    {"word": "նարդի",       "start": "4:55", "teaser": "5:08", "hint": "5:16"},
+    {"word": "Իսպանիա", "start": "5:29", "teaser": "5:44", "hint": "5:50"}
+  ],
+  "outro_start": "6:03"
 }

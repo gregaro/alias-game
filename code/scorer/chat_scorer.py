@@ -42,7 +42,7 @@ import os
 import sys
 import time
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from youtube_auth import get_service
 from normalize import matches
@@ -62,6 +62,14 @@ TIMELINE_FILE = None
 # Long enough to read, short enough that it isn't still sitting there under the
 # host's lead-in to the next word — or under the whole outro.
 ANSWER_HOLD_SECONDS = 5.0
+
+# How long after a window shuts we keep WATCHING for its answer. Nothing scores
+# here — it is a measurement. Viewers run 3-10s behind the stream, so someone who
+# only gets the word from the long hint can type it a beat too late; they are
+# invisible otherwise. If a rehearsal shows a cluster of these, the fix is more
+# silence after the hint in the render, NOT a longer window here (the window ends
+# where the host says the answer, and moving it lets chat copy him).
+LATE_GRACE_SECONDS = 20.0
 
 
 # ----------------------------- state file I/O -----------------------------
@@ -220,9 +228,68 @@ class Scorer:
         self.current_answers = []
         self.correct_count = 0      # how many have scored this question (for decay)
         self.scored_channels = set()  # channelIds that already scored this question
+        self.hint_at = None         # datetime the host speaks the long hint
+        self.word = None            # current word, for the timing report
+
+        # Rehearsal instrumentation. Pure observers: they change nothing about
+        # what scores or what the overlay shows.
+        #
+        # `late` is the important one. A correct answer arriving after the window
+        # shuts is dropped on the floor — so the viewers our pacing FAILED are
+        # exactly the ones who leave no trace, and a rehearsal would look clean
+        # while quietly losing people. Recording them is the only way to know
+        # whether the silence after the long hint is long enough.
+        self.solves = []            # {word, after_open, after_hint}
+        self.late = []              # {word, name, seconds_late}
+        self._closed = None         # just-closed window, kept for the grace check
 
         self.page_token = None
         self.running = True
+
+    # ----- rehearsal timing report -----
+
+    def timing_report(self):
+        """What the rehearsal is FOR: did people have enough time to type?
+
+        Solves are split either side of the long hint, because that is the
+        pacing question — if almost everyone only lands after it, the teaser is
+        too hard; if people are still arriving as the window shuts, the silence
+        after the hint is too short. The late list is the smoking gun: those
+        viewers knew the word and got nothing."""
+        print("\n--- timing ---")
+        if not self.solves and not self.late:
+            print("No correct answers to time.")
+            return
+
+        on_teaser = [s for s in self.solves if s["after_hint"] is not None
+                     and s["after_hint"] < 0]
+        on_hint = [s for s in self.solves if s["after_hint"] is not None
+                   and s["after_hint"] >= 0]
+        print(f"Solved on the teaser: {len(on_teaser)}   "
+              f"after the long hint: {len(on_hint)}")
+        if on_hint:
+            secs = sorted(s["after_hint"] for s in on_hint)
+            mid = secs[len(secs) // 2]
+            print(f"  of those, they took {min(secs):.0f}-{max(secs):.0f}s after "
+                  f"the hint (median {mid:.0f}s)")
+
+        if not self.late:
+            print("\nNobody answered correctly after a window closed — the "
+                  "silence after the long hint is long enough.")
+            return
+        print(f"\n{len(self.late)} correct answer(s) arrived TOO LATE and scored "
+              "nothing:")
+        by_word = {}
+        for l in self.late:
+            by_word.setdefault(l["word"], []).append(l["seconds_late"])
+        for word, lates in by_word.items():
+            print(f"  {word}: {len(lates)} missed by "
+                  f"{min(lates):.1f}-{max(lates):.1f}s")
+        worst = max(l["seconds_late"] for l in self.late)
+        print(f"\nAdd ~{worst + 2:.0f}s more silence after the long hint in the "
+              "render to catch them. Do NOT lengthen the window instead — it "
+              "ends where the host says the answer, and moving it lets chat "
+              "copy him.")
 
     # ----- leaderboard rendering -----
 
@@ -293,17 +360,29 @@ class Scorer:
         if not text or not cid:
             return
 
+        # The send time, not the poll time: polling lags by seconds and would
+        # smear every measurement below.
+        ts = None
+        if published:
+            try:
+                ts = datetime.fromisoformat(published.replace("Z", "+00:00"))
+            except ValueError:
+                pass
+
         with self.lock:
+            # Windows are CONTIGUOUS — one closes exactly as the next opens — so
+            # a straggler still typing the previous word arrives while the new
+            # window is already open. The late check therefore cannot hang off
+            # `window_open`; it has to run on every message, against the word
+            # that just closed. (The two answer sets never overlap: stage 3
+            # rejects a variant that would match two words.)
+            self._note_late(cid, name, text, ts)
+
             if not self.window_open:
                 return
             # Only count messages sent after the window opened.
-            if published:
-                try:
-                    ts = datetime.fromisoformat(published.replace("Z", "+00:00"))
-                    if ts < self.window_open_at:
-                        return
-                except ValueError:
-                    pass
+            if ts and ts < self.window_open_at:
+                return
             if cid in self.scored_channels:
                 return  # one scoring chance per person per question
             if matches(text, self.current_answers):
@@ -314,9 +393,44 @@ class Scorer:
                 self.names[cid] = name
                 rank = self.correct_count
                 print(f"  ✓ {name} +{pts}  (#{rank} correct)  total={self.scores[cid]}")
+                self._note_solve(ts)
                 # Push the updated leaderboard out immediately.
                 self.publish_state(
                     question=self._q, window_ends_at=self._ends, phase="question")
+
+    # ----- rehearsal instrumentation (observers: they never score) -----
+
+    def _note_solve(self, ts):
+        """Record WHEN this solve landed — before the long hint (the teaser was
+        enough) or after it. Caller holds the lock."""
+        if not ts or not self.window_open_at:
+            return
+        after_hint = (ts - self.hint_at).total_seconds() if self.hint_at else None
+        self.solves.append({
+            "word": self.word,
+            "after_open": (ts - self.window_open_at).total_seconds(),
+            "after_hint": after_hint,
+        })
+
+    def _note_late(self, cid, name, text, ts):
+        """A correct answer that arrived after its window shut. Recorded ONLY —
+        never scored, or chat could answer while the host is saying the word.
+        Caller holds the lock."""
+        c = self._closed
+        if not c or not ts:
+            return
+        seconds_late = (ts - c["closed_at"]).total_seconds()
+        if not 0 < seconds_late <= LATE_GRACE_SECONDS:
+            return
+        if cid in c["scored"] or cid in c["noted"]:
+            return  # already scored in time, or already counted once as late
+        if not matches(text, c["answers"]):
+            return
+        c["noted"].add(cid)     # count a person once, not once per repeat message
+        self.late.append({"word": c["word"], "name": name,
+                          "seconds_late": seconds_late})
+        print(f"  ⏱ LATE  {name} had «{c['word']}» {seconds_late:.1f}s after the "
+              "window closed — no points")
 
     # ----- opening / closing an answer window -----
     #
@@ -335,16 +449,23 @@ class Scorer:
     _q = None
     _ends = None
 
-    def _open(self, q, close_epoch):
+    def _open(self, q, close_epoch, hint_epoch=None):
         """Start scoring q. Deliberately publishes NOTHING — the caller decides
         what is on screen, because at this instant the host is still announcing
-        the previous word's answer, not asking this one."""
+        the previous word's answer, not asking this one.
+
+        `hint_epoch` is when the host speaks the long hint; it only tags solves
+        as before/after it in the timing report."""
+        now = datetime.now(timezone.utc)
         with self.lock:
             self.window_open = True
-            self.window_open_at = datetime.now(timezone.utc)
+            self.window_open_at = now
             self.current_answers = q["answers"]
             self.correct_count = 0
             self.scored_channels = set()
+            self.word = q.get("word", q["text"])
+            self.hint_at = (now + timedelta(seconds=hint_epoch - time.time())
+                            if hint_epoch else None)
         remaining = max(0.0, close_epoch - time.time())
         print(f"\nQ{q.get('number')}: {q.get('word', q['text'])}")
         print(f"Scoring open for {remaining:.0f}s. Accepted: {q['answers']}")
@@ -365,6 +486,15 @@ class Scorer:
         puts this word's answer up, which is the same instant the host says it."""
         with self.lock:
             self.window_open = False
+            # Keep the word watchable for a few seconds AFTER it stops scoring,
+            # so a correct answer that missed the cut is counted (never scored).
+            self._closed = {
+                "word": self.word,
+                "answers": self.current_answers,
+                "scored": set(self.scored_channels),
+                "noted": set(),
+                "closed_at": datetime.now(timezone.utc),
+            }
         print(f"Time! {self.correct_count} correct answer(s) this question.")
 
     def open_question(self, q):
@@ -401,7 +531,10 @@ class Scorer:
                       f"Q{q.get('number')} — check the sync press)")
 
             marks = hint_marks[i] if hint_marks else None
-            self._open(q, close_epoch)
+            # marks is (teaser, hint); the second is the long hint most people
+            # solve on, so the report can split solves either side of it.
+            self._open(q, close_epoch,
+                       t0 + marks[1] if marks and len(marks) > 1 else None)
 
             if not marks:
                 self._display(q.get("number"),
@@ -527,11 +660,17 @@ def main():
         for q in questions:
             scorer.open_question(q)  # blocks for window_seconds, then auto-advances
 
+    # The last word closes seconds before we get here, so keep polling through
+    # the outro: otherwise its late answers — the ones the report exists to
+    # catch — would be cut off with the poller. The outro is playing anyway.
+    time.sleep(max(0.0, LATE_GRACE_SECONDS - ANSWER_HOLD_SECONDS))
     scorer.running = False
+
     print("\nFinal leaderboard:")
     for i, row in enumerate(scorer.leaderboard(), 1):
         print(f"  {i}. {row['name']} — {row['score']}")
-    print("Done.")
+    scorer.timing_report()
+    print("\nDone.")
 
 
 if __name__ == "__main__":
