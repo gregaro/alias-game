@@ -168,7 +168,7 @@ def main():
     OUT_JSON = str(ep / episode.SCRIPT_JSON)
     OUT_TXT = str(ep / episode.SCRIPT_TXT)
     OUT_TTS = str(ep / episode.SCRIPT_TTS)
-    print(f"Episode: {args.episode or episode.current()}\n")
+    print(f"Episode: {episode.resolve_name(args.episode)}\n")
 
     show = db.latest_state("hint_generator", "last_hints")
     if not show:

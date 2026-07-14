@@ -62,7 +62,7 @@ def main():
     episode.add_argument(parser)
     args = parser.parse_args()
     QUESTIONS_FILE = episode.path(episode.QUESTIONS, args.episode)
-    print(f"Episode: {args.episode or episode.current()}\n")
+    print(f"Episode: {episode.resolve_name(args.episode)}\n")
 
     show = db.latest_state("hint_generator", "last_hints")
     if not show:

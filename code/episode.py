@@ -64,16 +64,45 @@ def set_current(name: str) -> None:
     CURRENT_FILE.write_text(name + "\n", encoding="utf-8")
 
 
-def resolve(name: str | None = None) -> Path:
-    """Directory of `name`, or of the current episode.
+def resolve_name(name: str | None = None) -> str:
+    """The full episode name from a full name, a shorthand, or None (= current).
 
-    Fails loudly rather than falling back to anything: silently running the
-    WRONG episode on show night is the worst outcome this module can produce."""
-    name = name or current()
-    d = EPISODES_DIR / name
+    Shorthands save typing the date on show night: `ep1`, `1`, `ep1-2026` all
+    find `ep1-2026-07-11`. A shorthand must match EXACTLY ONE episode — two
+    matches is an error, never a guess. Running the wrong show live is the worst
+    thing this module can do, and it is worse than not running at all.
+    """
+    if name is None:
+        name = current()
+    have = list_episodes()
+
+    if name in have:            # exact name always wins
+        return name
+    if not have:
+        raise SystemExit(f"No episodes under {EPISODES_DIR}.\n"
+                         "Run: python code/agents/new_episode.py")
+
+    # "1" means "ep1" — the number is the part you actually remember.
+    key = f"ep{name}" if name.isdigit() else name
+    hits = [e for e in have if e == key or e.startswith(key + "-") or
+            e.startswith(key)]
+
+    if len(hits) == 1:
+        return hits[0]
+    if not hits:
+        raise SystemExit(f"Episode {name!r} not found under {EPISODES_DIR}.\n"
+                         f"Available: {', '.join(have)}")
+    raise SystemExit(f"Episode {name!r} is ambiguous — it matches "
+                     f"{', '.join(hits)}.\nSpell it out; I will not guess which "
+                     "show you meant.")
+
+
+def resolve(name: str | None = None) -> Path:
+    """Directory of `name` (full or shorthand), or of the current episode."""
+    d = EPISODES_DIR / resolve_name(name)
     if not d.is_dir():
         have = ", ".join(list_episodes()) or "(none)"
-        raise SystemExit(f"Episode {name!r} not found under {EPISODES_DIR}.\n"
+        raise SystemExit(f"Episode {d.name!r} not found under {EPISODES_DIR}.\n"
                          f"Available: {have}")
     return d
 
@@ -93,4 +122,5 @@ def add_argument(parser) -> None:
     """Standard --episode flag, so every entry point spells it the same way."""
     parser.add_argument(
         "--episode", metavar="NAME", default=None,
-        help="episode to use (default: whatever current_episode names)")
+        help="episode to use — full name or shorthand (ep1, 1). "
+             "Default: whatever current_episode names.")

@@ -85,8 +85,9 @@ python code/agents/generate_show_script.py # stage 4: hints -> the episode clip 
 ```
 
 Every show gets its own folder (`questions/episodes/ep2-2026-07-12/`), so an old
-episode stays runnable rather than being overwritten — `chat_scorer.py --episode
-ep1-2026-07-11` replays it, timeline and curated answers included. Stages 3–4
+episode stays runnable rather than being overwritten — `chat_scorer.py --episode ep1`
+replays it, timeline and curated answers included (the name can be a shorthand, but
+an ambiguous one is an error: the tools never guess which show you meant). Stages 3–4
 write into whatever `current_episode` names, so re-running a stage iterates on the
 same show instead of spawning junk folders.
 

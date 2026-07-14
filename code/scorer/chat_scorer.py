@@ -683,7 +683,10 @@ def main():
     # Resolve the episode BEFORE anything else: running the wrong show is worse
     # than not running at all, so print which one loudly and fail hard if the
     # name is unknown.
-    name = args.episode or episode.current()
+    # Print the RESOLVED name, never what was typed: `--episode ep1` is a
+    # shorthand, and you must be able to see which show it actually picked
+    # before the video rolls.
+    name = episode.resolve_name(args.episode)
     ep = episode.resolve(name)
     QUESTIONS_FILE = str(ep / episode.QUESTIONS)
     TIMELINE_FILE = str(ep / episode.TIMELINE)

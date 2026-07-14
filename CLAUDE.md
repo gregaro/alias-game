@@ -146,10 +146,14 @@ python code/scorer/chat_scorer.py   # scorer (broadcast must be LIVE, not just s
 ```
 
 The scorer runs whatever `questions/current_episode` names. To replay an older
-show, pass its folder name — nothing else changes:
+show, name it — the full folder name, or a shorthand (`ep1`, or just `1`). A
+shorthand that matches two episodes is an ERROR, never a guess, and the scorer
+prints the RESOLVED name before the video rolls so you can see what it picked:
 
 ```
 python code/scorer/chat_scorer.py --episode ep1-2026-07-11
+python code/scorer/chat_scorer.py --episode ep1     # same thing
+python code/scorer/chat_scorer.py --episode 1       # same thing
 python code/agents/new_episode.py --list      # what episodes exist, * = current
 ```
 
