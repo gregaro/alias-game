@@ -53,6 +53,25 @@
     padding: 20px 20px 24px;
     backdrop-filter: blur(8px);
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    z-index: 10;
+    /* Only animated at the end, when it glides to center stage — during the
+       show top/left never change, so this costs nothing. */
+    transition: top 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+                left 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+                width 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* End of show: the SAME board (no duplicate markup, no state desync) moves
+     to center stage and grows slightly, over the end card backdrop. */
+  .board.centered {
+    /* Biased toward the upper half, not true center: at 5 rows the card runs
+       tall, and the thank-you text needs clearance below it. Checked against
+       a real screenshot — true center let the two overlap. */
+    top: 46%;
+    left: 50%;
+    width: 640px;
+    transform: translate(-50%, -58%) scale(1.08);
+    z-index: 50;
   }
   .board__head {
     display: flex;
@@ -236,9 +255,79 @@
     75% { transform: translateX(2px); }
   }
 
+  /* ---------- End card (after the outro) ---------- */
+  /* NOT transparent, unlike everything above: once the host video finishes,
+     this frame has nothing else behind it, so it needs its own background
+     or the stream goes to black. */
+  .endcard-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 640px at 50% 40%, rgba(255, 194, 61, 0.10), transparent 60%),
+      radial-gradient(ellipse at 50% 50%, rgba(36, 24, 54, 0.94), rgba(8, 9, 13, 0.985) 72%);
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 1.1s ease;
+  }
+  .endcard-bg.show { opacity: 1; }
+
+  .confetti-layer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 40;
+    pointer-events: none;
+  }
+  .confetti-piece {
+    position: absolute;
+    top: -24px;
+    width: 14px;
+    height: 20px;
+    opacity: 0.95;
+    will-change: transform, opacity;
+    animation-name: confetti-fall;
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+    animation-fill-mode: forwards;
+  }
+  @keyframes confetti-fall {
+    to { transform: translateY(1160px) rotate(var(--spin, 540deg)); opacity: 0.2; }
+  }
+
+  .endcard-text {
+    position: absolute;
+    top: 84%;
+    left: 50%;
+    /* A definite width, or a centered absolute box with only `left` set
+       shrink-wraps using just the space to ITS RIGHT (960px, half the
+       frame) for the wrap calculation — the transform recenters it for
+       paint, but layout already wrapped the text one word too early. */
+    width: 1600px;
+    text-align: center;
+    z-index: 45;
+    opacity: 0;
+    transform: translate(-50%, 14px);
+    transition: opacity 1s ease 0.5s, transform 1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s;
+  }
+  .endcard-text.show { opacity: 1; transform: translate(-50%, 0); }
+  .endcard-text__thanks {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: 54px;
+    letter-spacing: 0.01em;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .endcard-text__sub {
+    margin-top: 10px;
+    font-size: 28px;
+    color: var(--muted);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .row, .timer__fill { transition: none; }
+    .row, .timer__fill, .board { transition: none; }
     .live__dot, .timer.low { animation: none; }
+    .confetti-piece { animation: none; opacity: 0; }
   }
 
   /* ---------- Mobile (phone / direct browser view) ---------- */
@@ -281,10 +370,23 @@
     .qbadge__of { font-size: 9px; }
     .timer { width: 48px; height: 48px; }
     .timer svg { width: 48px; height: 48px; }
+    .board.centered { width: 280px; transform: translate(-50%, -46%) scale(1.05); }
+    .endcard-text__thanks { font-size: 22px; }
+    .endcard-text__sub { font-size: 14px; }
+    .confetti-piece { width: 8px; height: 12px; }
   }
 </style>
 </head>
 <body>
+  <!-- End card: hidden until phase "ended". Sits below the board/qbar in DOM
+       order so it never intercepts anything during the show. -->
+  <div class="endcard-bg" id="endcardBg"></div>
+  <div class="confetti-layer" id="confettiLayer"></div>
+  <div class="endcard-text" id="endcardText">
+    <div class="endcard-text__thanks">Շնորհակալություն, որ մեզ հետ էիք</div>
+    <div class="endcard-text__sub">Կհանդիպենք հաջորդ եթերում</div>
+  </div>
+
   <!-- Leaderboard -->
   <div class="board">
     <div class="board__head">
@@ -325,6 +427,52 @@
   // so it ticks smoothly between the once-a-second state polls.
   let windowEndsAt = null;
   let windowTotal = null; // seconds the window started with, for the ring fraction
+
+  // ---------- End card ----------
+  const boardEl = document.querySelector(".board");
+  const endcardBg = document.getElementById("endcardBg");
+  const endcardText = document.getElementById("endcardText");
+  const confettiLayer = document.getElementById("confettiLayer");
+  const CONFETTI_COLORS = ["#FFC23D", "#34E0A1", "#FF5468", "#8A93A6", "#F5F7FA"];
+  let ended = false;
+  let confettiTimer = null;
+
+  function spawnConfetti(n) {
+    for (let i = 0; i < n; i++) {
+      const el = document.createElement("div");
+      el.className = "confetti-piece";
+      el.style.left = (Math.random() * 100) + "%";
+      el.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+      const spin = (Math.random() > 0.5 ? 1 : -1) * (360 + Math.random() * 360);
+      el.style.setProperty("--spin", spin + "deg");
+      const duration = 3.2 + Math.random() * 2.4;
+      el.style.animationDuration = duration + "s";
+      el.style.animationDelay = (Math.random() * 0.5) + "s";
+      confettiLayer.appendChild(el);
+      setTimeout(() => el.remove(), (duration + 1) * 1000);
+    }
+  }
+
+  function enterEndcard() {
+    if (ended) return;
+    ended = true;
+    document.getElementById("qbar").classList.remove("show");
+    boardEl.classList.add("centered");
+    endcardBg.classList.add("show");
+    endcardText.classList.add("show");
+    spawnConfetti(100);                                    // initial burst
+    confettiTimer = setInterval(() => spawnConfetti(6), 260); // gentle trickle
+  }
+
+  function exitEndcard() {
+    if (!ended) return;
+    ended = false;
+    boardEl.classList.remove("centered");
+    endcardBg.classList.remove("show");
+    endcardText.classList.remove("show");
+    if (confettiTimer) { clearInterval(confettiTimer); confettiTimer = null; }
+    confettiLayer.innerHTML = "";
+  }
 
   function renderLeaderboard(board) {
     const top = (board || []).slice(0, 5);
@@ -415,6 +563,7 @@
       const s = await res.json();
       renderLeaderboard(s.leaderboard);
       renderQuestion(s.question, s.phase);
+      if (s.phase === "ended") enterEndcard(); else exitEndcard();
 
       // Track when a new window starts so the ring knows its full duration.
       if (s.window_ends_at && s.window_ends_at !== windowEndsAt) {

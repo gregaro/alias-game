@@ -75,11 +75,15 @@ code/
 │                       difficulty_tuning, trend_research.
 ├── overlay/
 │   ├── server.py       Flask overlay server. Serves overlay.html at /, live
-│   │                   state at /state, a test control at /timer/<seconds>
-│   │                   (and /timer/stop). Reads ../overlay/state.json.
+│   │                   state at /state, test controls at /timer/<seconds>
+│   │                   (and /timer/stop) and /end (and /end/stop). Reads
+│   │                   ../overlay/state.json.
 │   ├── overlay.html    Transparent overlay page (leaderboard, question
-│   │                   lower-third, countdown ring). Polls /state every 1s.
-│   │                   Added to OBS as a Browser Source.
+│   │                   lower-third, countdown ring) plus an opaque end-card
+│   │                   phase (leaderboard glides to center, confetti,
+│   │                   thank-you note) for after the show, so it isn't a
+│   │                   black frame once the host video ends. Polls /state
+│   │                   every 1s. Added to OBS as a Browser Source.
 │   └── state.json      The shared state: phase, question, window_ends_at
 │                       (epoch seconds), leaderboard ([{name, score}]).
 │                       Gitignored — runtime artifact.
@@ -200,10 +204,12 @@ ABOVE the avatar Media Source.
 
 - **Bind the server to `0.0.0.0`**, not `127.0.0.1`, or other devices get
   `ERR_CONNECTION_REFUSED`. `HOST`/`PORT` env vars override.
-- **`/timer/<n>` is a control endpoint, not a page.** Never add it as an OBS
-  browser source — it returns JSON and will render raw text on the video. Hit it
-  from a browser tab (or the scorer calls it); the ring then shows on the main
-  overlay.
+- **`/timer/<n>` and `/end` are control endpoints, not pages.** Never add either
+  as an OBS browser source — they return JSON and will render raw text on the
+  video. Hit them from a browser tab; the effect then shows on the main overlay.
+  `/end` switches the overlay to its after-show end card (leaderboard to
+  center, confetti, thank-you note) — trigger it once the outro is winding
+  down. `/end/stop` reverts to idle.
 - **Atomic writes:** write `state.json` via a temp file + `os.replace()` so the
   overlay never reads a half-written file.
 - **Score by channelId, not display name.** Names repeat/change; channel IDs are

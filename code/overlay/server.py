@@ -66,6 +66,32 @@ def state():
     return resp
 
 
+@app.route("/end")
+def end_show():
+    """Trigger the after-show end card: the leaderboard glides to center stage
+    with confetti and a thank-you note, instead of the stream cutting to a
+    black frame once the host video finishes.
+
+    A CONTROL endpoint like /timer, not a page — hit it from a browser tab (or
+    the scorer) once the outro is winding down. Never add it as its own OBS
+    Browser Source."""
+    s = read_state()
+    s["phase"] = "ended"
+    s["question"] = None
+    s["window_ends_at"] = None
+    write_state(s)
+    return Response(json.dumps(s, ensure_ascii=False), mimetype="application/json")
+
+
+@app.route("/end/stop")
+def end_stop():
+    """Back to idle — for testing, or if you triggered /end too early."""
+    s = read_state()
+    s["phase"] = "idle"
+    write_state(s)
+    return Response(json.dumps(s, ensure_ascii=False), mimetype="application/json")
+
+
 @app.route("/timer/<value>")
 def timer(value):
     """Start (or stop) the answer-window countdown for testing."""
