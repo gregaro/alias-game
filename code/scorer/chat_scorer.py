@@ -52,6 +52,7 @@ sys.path.insert(0, os.path.dirname(HERE))   # code/, for episode.py
 import episode
 
 STATE_FILE = os.path.join(HERE, "../overlay/state.json")
+LOG_DIR = os.path.join(HERE, "../logs")   # gitignored: run artifacts, per episode
 
 # Set from the resolved episode in main(); the loaders read them. Every show's
 # files live in their own folder, so an old episode stays runnable.
@@ -70,6 +71,40 @@ ANSWER_HOLD_SECONDS = 5.0
 # silence after the hint in the render, NOT a longer window here (the window ends
 # where the host says the answer, and moving it lets chat copy him).
 LATE_GRACE_SECONDS = 20.0
+
+
+# ------------------------------ the event log ------------------------------
+
+class EventLog:
+    """Append-only JSONL record of a run: one object per line, flushed as it
+    happens so a crash mid-show still leaves everything up to that point.
+
+    This is the audit trail AND the tuning instrument. The most valuable rows
+    are the ones nothing else keeps: every chat message that did NOT match, with
+    the word that was open at the time. Those are the missing spellings in
+    answers[] — a viewer who knew the word and scored zero — and they are
+    invisible in the console. After a show, run review_log.py to pull them out.
+    """
+
+    def __init__(self, path):
+        self.path = path
+        self.t0 = None                   # video-start sync, set at the Enter press
+        self.lock = threading.Lock()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        self.f = open(path, "a", encoding="utf-8", buffering=1)
+
+    def write(self, event, **fields):
+        row = {"at": datetime.now(timezone.utc).isoformat(), "event": event}
+        # Seconds into the video, so a row can be found in the rendered clip.
+        if self.t0 is not None:
+            row["video_t"] = round(time.time() - self.t0, 1)
+        row.update(fields)
+        with self.lock:
+            self.f.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+    def close(self):
+        with self.lock:
+            self.f.close()
 
 
 # ----------------------------- state file I/O -----------------------------
@@ -209,9 +244,10 @@ def load_hint_marks(rows: list[dict], bounds: list[float]):
 # ------------------------------- the scorer -------------------------------
 
 class Scorer:
-    def __init__(self, service, liveChatId, config):
+    def __init__(self, service, liveChatId, config, log=None):
         self.service = service
         self.liveChatId = liveChatId
+        self.log = log
         self.window_seconds = config.get("window_seconds", 25)
         self.points = config.get("points", [10, 8, 7, 6, 5, 4, 3, 2])
         self.min_points = config.get("min_points", 1)
@@ -369,68 +405,94 @@ class Scorer:
             except ValueError:
                 pass
 
+        # Every message ends up with exactly one verdict, and every verdict is
+        # logged — including the boring ones. `no_match` is the whole point: a
+        # viewer typing a spelling we forgot looks identical to idle chatter
+        # here, and only shows up when you read the log afterwards.
         with self.lock:
+            extra = {}
+
             # Windows are CONTIGUOUS — one closes exactly as the next opens — so
             # a straggler still typing the previous word arrives while the new
             # window is already open. The late check therefore cannot hang off
             # `window_open`; it has to run on every message, against the word
             # that just closed. (The two answer sets never overlap: stage 3
             # rejects a variant that would match two words.)
-            self._note_late(cid, name, text, ts)
+            late = self._note_late(cid, name, text, ts)
+            if late:
+                verdict, word, extra = "late", late["word"], {
+                    "seconds_late": round(late["seconds_late"], 1)}
+            elif not self.window_open:
+                verdict, word = "no_window", None
+            elif ts and ts < self.window_open_at:
+                verdict, word = "pre_window", self.word   # backlog, never scores
+            elif matches(text, self.current_answers):
+                if cid in self.scored_channels:
+                    verdict, word = "repeat", self.word   # already scored it
+                else:
+                    pts = self.next_points()
+                    self.correct_count += 1
+                    self.scored_channels.add(cid)
+                    self.scores[cid] = self.scores.get(cid, 0) + pts
+                    self.names[cid] = name
+                    rank = self.correct_count
+                    print(f"  ✓ {name} +{pts}  (#{rank} correct)  "
+                          f"total={self.scores[cid]}")
+                    solve = self._note_solve(ts)
+                    verdict, word = "scored", self.word
+                    extra = {"points": pts, "rank": rank,
+                             "total": self.scores[cid]}
+                    if solve:
+                        extra["after_open"] = round(solve["after_open"], 1)
+                        if solve["after_hint"] is not None:
+                            extra["after_hint"] = round(solve["after_hint"], 1)
+                    # Push the updated leaderboard out immediately.
+                    self.publish_state(question=self._q, window_ends_at=self._ends,
+                                       phase="question")
+            else:
+                verdict, word = "no_match", self.word
 
-            if not self.window_open:
-                return
-            # Only count messages sent after the window opened.
-            if ts and ts < self.window_open_at:
-                return
-            if cid in self.scored_channels:
-                return  # one scoring chance per person per question
-            if matches(text, self.current_answers):
-                pts = self.next_points()
-                self.correct_count += 1
-                self.scored_channels.add(cid)
-                self.scores[cid] = self.scores.get(cid, 0) + pts
-                self.names[cid] = name
-                rank = self.correct_count
-                print(f"  ✓ {name} +{pts}  (#{rank} correct)  total={self.scores[cid]}")
-                self._note_solve(ts)
-                # Push the updated leaderboard out immediately.
-                self.publish_state(
-                    question=self._q, window_ends_at=self._ends, phase="question")
+        if self.log:
+            self.log.write("chat", verdict=verdict, word=word, name=name,
+                           channel=cid, text=text, sent=published, **extra)
 
     # ----- rehearsal instrumentation (observers: they never score) -----
 
     def _note_solve(self, ts):
         """Record WHEN this solve landed — before the long hint (the teaser was
-        enough) or after it. Caller holds the lock."""
+        enough) or after it. Caller holds the lock. Returns the record, or None
+        if the message carried no usable timestamp."""
         if not ts or not self.window_open_at:
-            return
+            return None
         after_hint = (ts - self.hint_at).total_seconds() if self.hint_at else None
-        self.solves.append({
+        rec = {
             "word": self.word,
             "after_open": (ts - self.window_open_at).total_seconds(),
             "after_hint": after_hint,
-        })
+        }
+        self.solves.append(rec)
+        return rec
 
     def _note_late(self, cid, name, text, ts):
         """A correct answer that arrived after its window shut. Recorded ONLY —
         never scored, or chat could answer while the host is saying the word.
-        Caller holds the lock."""
+        Caller holds the lock. Returns the record, or None if this isn't one."""
         c = self._closed
         if not c or not ts:
-            return
+            return None
         seconds_late = (ts - c["closed_at"]).total_seconds()
         if not 0 < seconds_late <= LATE_GRACE_SECONDS:
-            return
+            return None
         if cid in c["scored"] or cid in c["noted"]:
-            return  # already scored in time, or already counted once as late
+            return None  # already scored in time, or already counted once as late
         if not matches(text, c["answers"]):
-            return
+            return None
         c["noted"].add(cid)     # count a person once, not once per repeat message
-        self.late.append({"word": c["word"], "name": name,
-                          "seconds_late": seconds_late})
+        rec = {"word": c["word"], "name": name, "seconds_late": seconds_late}
+        self.late.append(rec)
         print(f"  ⏱ LATE  {name} had «{c['word']}» {seconds_late:.1f}s after the "
               "window closed — no points")
+        return rec
 
     # ----- opening / closing an answer window -----
     #
@@ -469,6 +531,9 @@ class Scorer:
         remaining = max(0.0, close_epoch - time.time())
         print(f"\nQ{q.get('number')}: {q.get('word', q['text'])}")
         print(f"Scoring open for {remaining:.0f}s. Accepted: {q['answers']}")
+        if self.log:
+            self.log.write("window_open", n=q.get("number"), word=self.word,
+                           seconds=round(remaining, 1), answers=q["answers"])
 
     def _display(self, number, text, ends=None, phase="question"):
         """Set the lower-third. `ends` is the countdown ring's target (epoch
@@ -496,6 +561,9 @@ class Scorer:
                 "closed_at": datetime.now(timezone.utc),
             }
         print(f"Time! {self.correct_count} correct answer(s) this question.")
+        if self.log:
+            self.log.write("window_close", word=self._closed["word"],
+                           correct=self.correct_count)
 
     def open_question(self, q):
         """FIXED mode: open now, run window_seconds, close, show the answer."""
@@ -569,6 +637,12 @@ class Scorer:
                         time.sleep(gap)
                     self._display(q.get("number"), hints[n - 1], close_epoch)
                     print(f"  hint {n}/{len(hints)}: {hints[n - 1]}")
+                    if self.log:
+                        # "teaser" then "hint", matching timeline.json's names.
+                        self.log.write(
+                            "hint_shown", word=self.word,
+                            which="teaser" if n == 1 else "hint",
+                            text=hints[n - 1])
 
             rest = close_epoch - time.time()
             if rest > 0:
@@ -630,7 +704,13 @@ def main():
         sys.exit(1)
     print(f"Connected to live chat: {chat_id}")
 
-    scorer = Scorer(service, chat_id, config)
+    # One log per RUN, not per episode: a rehearsal and the real show are two
+    # different sets of facts and neither should overwrite the other.
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    log = EventLog(os.path.join(LOG_DIR, name, f"{stamp}.jsonl"))
+    print(f"Logging to: {log.path}")
+
+    scorer = Scorer(service, chat_id, config, log=log)
     scorer._total = len(questions)
 
     # Show an empty board right away.
@@ -653,23 +733,42 @@ def main():
 
     input("\nPress Enter the moment the video starts to sync the show  >  ")
     t0 = time.time()
-    if timeline:
-        scorer.run_timeline(questions, t0, timeline["starts"],
-                            timeline["outro_start"], timeline["hints"])
-    else:
-        for q in questions:
-            scorer.open_question(q)  # blocks for window_seconds, then auto-advances
+    # Anchor every later row to the video, so a row can be replayed against the
+    # rendered clip: video_t is seconds from this press.
+    log.t0 = t0
+    log.write("show_start", episode=name, questions=len(questions),
+              mode="TIMELINE" if timeline else "FIXED",
+              words=[q.get("word") for q in questions])
 
-    # The last word closes seconds before we get here, so keep polling through
-    # the outro: otherwise its late answers — the ones the report exists to
-    # catch — would be cut off with the poller. The outro is playing anyway.
-    time.sleep(max(0.0, LATE_GRACE_SECONDS - ANSWER_HOLD_SECONDS))
-    scorer.running = False
+    try:
+        if timeline:
+            scorer.run_timeline(questions, t0, timeline["starts"],
+                                timeline["outro_start"], timeline["hints"])
+        else:
+            for q in questions:
+                scorer.open_question(q)  # blocks window_seconds, then advances
+
+        # The last word closes seconds before we get here, so keep polling through
+        # the outro: otherwise its late answers — the ones the report exists to
+        # catch — would be cut off with the poller. The outro is playing anyway.
+        time.sleep(max(0.0, LATE_GRACE_SECONDS - ANSWER_HOLD_SECONDS))
+    except KeyboardInterrupt:
+        # A show cut short still has to leave a usable log behind.
+        print("\nInterrupted — writing what we have.")
+        log.write("interrupted")
+    finally:
+        scorer.running = False
+        board = scorer.leaderboard(top=100)
+        log.write("show_end", leaderboard=board,
+                  solves=len(scorer.solves), late=len(scorer.late))
+        log.close()
 
     print("\nFinal leaderboard:")
     for i, row in enumerate(scorer.leaderboard(), 1):
         print(f"  {i}. {row['name']} — {row['score']}")
     scorer.timing_report()
+    print(f"\nLog: {log.path}")
+    print(f"Review it:  python code/scorer/review_log.py {log.path}")
     print("\nDone.")
 
 

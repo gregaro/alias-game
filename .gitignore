@@ -5,3 +5,5 @@ __pycache__/
 code/overlay/state.json
 alias_game.db
 code/testing/
+# Show logs: run artifacts, and they carry viewer names + channel IDs.
+code/logs/

@@ -112,11 +112,24 @@ code/
 │   │                   ../overlay/state.json. You press Enter ONCE, the
 │   │                   moment the video starts, and it replays timeline.json
 │   │                   from there (FIXED-mode fallback if that file is
-│   │                   missing or inconsistent).
+│   │                   missing or inconsistent). Also writes a JSONL event
+│   │                   log per run (see logs/).
+│   ├── review_log.py   Reads a run's log and prints the two things worth
+│   │                   acting on: unmatched chat grouped by the word that was
+│   │                   open (= missing spellings for answers[]), and pacing
+│   │                   (who solved on the teaser vs the long hint, who missed
+│   │                   the window). Run it after every show.
 │   ├── normalize.py    Answer normalization + matching. Armenian-aware.
 │   ├── youtube_auth.py OAuth with token caching. First run opens a browser;
 │   │                   later runs refresh silently. Reads/writes ../secrets/.
 │   └── test_youtube_auth.py  Standalone auth smoke test (prints channel name).
+├── logs/<episode>/<timestamp>.jsonl   One append-only log per RUN (a rehearsal
+│                       and the real show are different facts; neither
+│                       overwrites the other). Every chat message gets exactly
+│                       one verdict — scored / late / no_match / repeat /
+│                       pre_window — plus window opens/closes and hint marks.
+│                       Gitignored: runtime artifact, and it carries viewer
+│                       names and channel IDs.
 └── secrets/            Gitignored entirely — never commit anything here.
     ├── client_secret.json  OAuth client downloaded from Google Cloud.
     └── token.json          Created automatically after first authorization.
@@ -214,6 +227,19 @@ ABOVE the avatar Media Source.
   might type has to be listed in `answers[]` — transliterations, the English
   name, nicknames, Russian loanwords in Cyrillic. A missing variant is a viewer
   who knew the answer and scored zero.
+- **The failures are the ones you can't see.** A wrong-spelling answer and a
+  too-late answer both used to be dropped silently, so the viewers the system
+  failed left no trace and a show could look clean while quietly losing people.
+  Both are now logged (never scored) and `review_log.py` prints them. Read that
+  after every run: unmatched text several people typed while a word was open is
+  a missing spelling, not chatter.
+- **Never score past the window to be kind to late answers.** The window closes
+  where the host says the answer AND where the overlay prints it — measured on
+  ep3, the host names the word as little as 0.4s after the close, and the
+  overlay shows it instantly. Any grace period pays people for echoing the
+  reveal, which chat does naturally out of excitement. If people are missing the
+  cut, add silence after the long hint in the RENDER instead; that moves the
+  reveal, so the answer stays secret for the whole scored span.
 - **Don't let the overlay reflow.** Hide things with `visibility: hidden`, not
   `display: none`: an element leaving the flex row shifts the text sideways for
   a frame, which reads as a glitch on stream.
