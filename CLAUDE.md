@@ -204,6 +204,17 @@ Browser Source pointed at the Pi. This setup is for development.
 OBS (Mac): Browser Source -> `http://<pi-lan-ip>:8080`, 1920x1080, layered
 ABOVE the avatar Media Source.
 
+**After editing `overlay.html`, refresh the OBS source — it won't pick up the
+change on its own.** A Browser Source loads the page once when it starts and
+keeps that same running Chromium instance for the whole stream; saving the
+file on disk doesn't make it re-fetch. Symptom: everything that existed when
+the source last loaded still works, but anything added since (new phases,
+new CSS) silently does nothing — it's simply running old code, no error
+anywhere. Fix: right-click the source -> **"Refresh cache of current
+page."** First bit by this with the end-card feature: `phase: "ended"` was
+reaching `state.json` correctly (the scorer even logged "End card
+triggered"), but a stale source had no idea what that phase meant.
+
 ## Conventions and hard-won lessons
 
 - **Bind the server to `0.0.0.0`**, not `127.0.0.1`, or other devices get
