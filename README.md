@@ -110,8 +110,10 @@ same show instead of spawning junk folders.
   longer answers), so every form a viewer might type still has to be listed (Armenian
   spellings, both Latin transliteration conventions, the English name, nicknames,
   Russian loanwords in Cyrillic). Stage 3 carries those hand-added answers forward on
-  regeneration rather than clobbering them, and refuses to write an episode where two
-  words' answers are close enough to blur into each other.
+  regeneration rather than clobbering them, refuses to write an episode where two
+  words' answers are close enough to blur into each other, and syncs `timeline.json`'s
+  row list to the word order — non-destructively, so a row you already measured off
+  the video is never reset just because you tweaked a hint and regenerated.
 - **`show_scripter`** (stage 4) writes the host's frame around the hints — episode
   intro with the rules, a spoiler-free lead-in before each word, a reveal line after
   each answer window (often calling back to a hint's joke), and the outro — in the

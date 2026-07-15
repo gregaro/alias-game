@@ -49,7 +49,11 @@ code/
 │   ├── generate_questions.py  Stage three (no LLM): hints from the DB ->
 │   │                   ../questions/questions.json for the scorer. Keeps
 │   │                   existing scoring settings; answers still need a
-│   │                   human variants pass before the show.
+│   │                   human variants pass before the show. Also syncs
+│   │                   timeline.json's row list to the word order (this is
+│   │                   the first stage that KNOWS it) — non-destructively:
+│   │                   a row already carrying a measured mark is left alone,
+│   │                   only a new/changed word gets a fresh empty row.
 │   ├── generate_show_script.py  Stage four: show_scripter agent writes the
 │   │                   host frame (intro/lead-ins/reveals/outro); weaves in
 │   │                   the hints and writes ../questions/show_script.txt

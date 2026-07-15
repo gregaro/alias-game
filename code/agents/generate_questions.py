@@ -26,6 +26,7 @@ sys.path.insert(0, str(HERE.parent))        # code/, for episode.py
 import episode
 sys.path.insert(0, str(HERE.parent / "scorer"))   # code/scorer/, for normalize.py
 from normalize import normalize, edit_distance, FUZZY_MIN_LENGTH, FUZZY_MAX_DISTANCE
+from new_episode import TIMELINE_TEMPLATE
 
 DEFAULTS = {"window_seconds": 25, "points": [10, 8, 7, 6, 5, 4, 3, 2],
             "min_points": 1}
@@ -92,6 +93,53 @@ def check_collisions(questions: list[dict]) -> None:
                 "before running the show.")
 
 
+def sync_timeline(words: list[str], ep_name: str | None = None) -> None:
+    """Keep timeline.json's row list in step with the word order.
+
+    new_episode.py's template has always SAID "run generate_questions.py
+    first: it fills in the word list here" — but nothing ever actually did
+    that, so every episode's timeline.json sat at "windows": [] until you
+    typed out all 10 rows by hand before you could even start measuring. This
+    is stage 3 finally doing what its own template claimed, since stage 3 is
+    the first point in the pipeline where the final word list is known —
+    new_episode.py (stage 0) runs before the words are even researched.
+
+    Idempotent and non-destructive: a row already carrying a measured mark
+    for that same word is left untouched. Only rows for a NEW or reordered
+    word get reset to an empty, unmeasured template. So re-running stage 3
+    after tweaking hints (same words) never erases marks you already spent
+    time scrubbing off the video."""
+    path = episode.path(episode.TIMELINE, ep_name)
+    if path.exists():
+        data = json.load(open(path, encoding="utf-8"))
+    else:
+        data = dict(TIMELINE_TEMPLATE)   # fallback; new_episode.py normally
+                                         # already created this file in stage 0
+
+    old_rows = {row.get("word"): row for row in data.get("windows") or []}
+    new_rows, reused = [], 0
+    for word in words:
+        old = old_rows.get(word)
+        if old and any(old.get(k) is not None for k in ("start", "teaser", "hint")):
+            new_rows.append(old)
+            reused += 1
+        else:
+            new_rows.append({"word": word, "start": None, "teaser": None, "hint": None})
+    data["windows"] = new_rows
+    data.setdefault("outro_start", None)
+    data.setdefault("outro_end", None)
+
+    tmp = str(path) + ".tmp"
+    json.dump(data, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    open(tmp, "a").write("\n")
+    os.replace(tmp, path)
+
+    fresh = len(new_rows) - reused
+    print(f"Synced {path.name}: {len(new_rows)} row(s)"
+          + (f" ({reused} measured mark(s) preserved, {fresh} fresh)" if reused else "")
+          + ".")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Stage 3: hints -> questions.json")
     episode.add_argument(parser)
@@ -141,6 +189,9 @@ def main():
     print(f"Wrote {len(config['questions'])} questions to {QUESTIONS_FILE}\n")
     for q in config["questions"]:
         print(f"  {q['number']}. {q['word']}  ->  answers: {q['answers']}")
+
+    sync_timeline([e["word"] for e in show], args.episode)
+
     print("\nBEFORE THE SHOW: hand-add variants viewers will actually type —")
     print("transliterations for names (spiderman, tsarukyan), synonyms the")
     print("hints point at, common misspellings. The scorer matches EXACTLY.")
