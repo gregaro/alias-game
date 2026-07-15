@@ -93,6 +93,25 @@ def check_collisions(questions: list[dict]) -> None:
                 "before running the show.")
 
 
+_WINDOW_ROW_RE = re.compile(
+    r'\{\s*"word":\s*("(?:[^"\\]|\\.)*"),\s*'
+    r'"start":\s*(null|"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?),\s*'
+    r'"teaser":\s*(null|"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?),\s*'
+    r'"hint":\s*(null|"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?)\s*\}'
+)
+
+
+def _compact_windows(text: str) -> str:
+    """Collapse each {word, start, teaser, hint} row back onto one line.
+
+    json.dumps's indent=2 blows every row across 6 lines, but every hand-
+    measured timeline.json in this repo uses one row per line — much easier
+    to scan while scrubbing through 10 rows of second-marks. Regex, not a
+    custom encoder, because only the WINDOW rows need this; the _comment
+    block and outro_start/outro_end should stay in normal indented JSON."""
+    return _WINDOW_ROW_RE.sub(r'{"word": \1, "start": \2, "teaser": \3, "hint": \4}', text)
+
+
 def sync_timeline(words: list[str], ep_name: str | None = None) -> None:
     """Keep timeline.json's row list in step with the word order.
 
@@ -129,9 +148,9 @@ def sync_timeline(words: list[str], ep_name: str | None = None) -> None:
     data.setdefault("outro_start", None)
     data.setdefault("outro_end", None)
 
+    text = _compact_windows(json.dumps(data, ensure_ascii=False, indent=2)) + "\n"
     tmp = str(path) + ".tmp"
-    json.dump(data, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-    open(tmp, "a").write("\n")
+    open(tmp, "w", encoding="utf-8").write(text)
     os.replace(tmp, path)
 
     fresh = len(new_rows) - reused

@@ -32,66 +32,16 @@
     "never shown on screen either — only two marks per row."
   ],
   "windows": [
-    {
-      "word": "Գագիկ Ծառուկյան",
-      "start": 29,
-      "teaser": 29,
-      "hint": 37
-    },
-    {
-      "word": "պահմտոցի",
-      "start": 50,
-      "teaser": "1:02",
-      "hint": "1:09"
-    },
-    {
-      "word": "Սարդ-մարդ",
-      "start": "1:20",
-      "teaser": "1:35",
-      "hint": "1:42"
-    },
-    {
-      "word": "խաշ",
-      "start": "1:54",
-      "teaser": "2:09",
-      "hint": "2:17"
-    },
-    {
-      "word": "բորենի",
-      "start": "2:27",
-      "teaser": "2:40",
-      "hint": "2:47"
-    },
-    {
-      "word": "փռշտալ",
-      "start": "2:58",
-      "teaser": "3:12",
-      "hint": "3:18"
-    },
-    {
-      "word": "խցանահան",
-      "start": "3:30",
-      "teaser": "3:42",
-      "hint": "3:49"
-    },
-    {
-      "word": "ժլատ",
-      "start": "4:00",
-      "teaser": "4:12",
-      "hint": "4:18"
-    },
-    {
-      "word": "Ամազոն",
-      "start": "4:28",
-      "teaser": "4:42",
-      "hint": "4:49"
-    },
-    {
-      "word": "վարսավիր",
-      "start": "4:57",
-      "teaser": "5:10",
-      "hint": "5:17"
-    }
+    {"word": "Գագիկ Ծառուկյան", "start": 29, "teaser": 29, "hint": 37},
+    {"word": "պահմտոցի", "start": 50, "teaser": "1:02", "hint": "1:09"},
+    {"word": "Սարդ-մարդ", "start": "1:20", "teaser": "1:35", "hint": "1:42"},
+    {"word": "խաշ", "start": "1:54", "teaser": "2:09", "hint": "2:17"},
+    {"word": "բորենի", "start": "2:27", "teaser": "2:40", "hint": "2:47"},
+    {"word": "փռշտալ", "start": "2:58", "teaser": "3:12", "hint": "3:18"},
+    {"word": "խցանահան", "start": "3:30", "teaser": "3:42", "hint": "3:49"},
+    {"word": "ժլատ", "start": "4:00", "teaser": "4:12", "hint": "4:18"},
+    {"word": "Ամազոն", "start": "4:28", "teaser": "4:42", "hint": "4:49"},
+    {"word": "վարսավիր", "start": "4:57", "teaser": "5:10", "hint": "5:17"}
   ],
   "outro_start": "5:27",
   "outro_end": "5:52"

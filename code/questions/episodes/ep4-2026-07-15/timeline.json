@@ -28,66 +28,16 @@
     "Run generate_questions.py first: it fills in the word list here."
   ],
   "windows": [
-    {
-      "word": "Ընտրություններ",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Անձնագիր",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Մհեր Մկրտչյան",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Ակնոց",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Գուլպա",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Տոպրակ",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Անձրև",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Բարձ",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Արգենտինա",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Թռչել",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    }
+    {"word": "Ընտրություններ", "start": null, "teaser": null, "hint": null},
+    {"word": "Անձնագիր", "start": null, "teaser": null, "hint": null},
+    {"word": "Մհեր Մկրտչյան", "start": null, "teaser": null, "hint": null},
+    {"word": "Ակնոց", "start": null, "teaser": null, "hint": null},
+    {"word": "Գուլպա", "start": null, "teaser": null, "hint": null},
+    {"word": "Տոպրակ", "start": null, "teaser": null, "hint": null},
+    {"word": "Անձրև", "start": null, "teaser": null, "hint": null},
+    {"word": "Բարձ", "start": null, "teaser": null, "hint": null},
+    {"word": "Արգենտինա", "start": null, "teaser": null, "hint": null},
+    {"word": "Թռչել", "start": null, "teaser": null, "hint": null}
   ],
   "outro_start": null,
   "outro_end": null

@@ -28,66 +28,16 @@
     "Run generate_questions.py first: it fills in the word list here."
   ],
   "windows": [
-    {
-      "word": "Յութուբ",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Խուտուտ տալ",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Տոնածառ",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Քավոր",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Թթու",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Սիֆոն",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Բժիշկ",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Կրոկոդիլ Գենա",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Սարդ-մարդ",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    },
-    {
-      "word": "Մունդիալ",
-      "start": null,
-      "teaser": null,
-      "hint": null
-    }
+    {"word": "Յութուբ", "start": null, "teaser": null, "hint": null},
+    {"word": "Խուտուտ տալ", "start": null, "teaser": null, "hint": null},
+    {"word": "Տոնածառ", "start": null, "teaser": null, "hint": null},
+    {"word": "Քավոր", "start": null, "teaser": null, "hint": null},
+    {"word": "Թթու", "start": null, "teaser": null, "hint": null},
+    {"word": "Սիֆոն", "start": null, "teaser": null, "hint": null},
+    {"word": "Բժիշկ", "start": null, "teaser": null, "hint": null},
+    {"word": "Կրոկոդիլ Գենա", "start": null, "teaser": null, "hint": null},
+    {"word": "Սարդ-մարդ", "start": null, "teaser": null, "hint": null},
+    {"word": "Մունդիալ", "start": null, "teaser": null, "hint": null}
   ],
   "outro_start": null,
   "outro_end": null
