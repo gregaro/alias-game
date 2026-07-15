@@ -1,0 +1,33 @@
+{
+  "_comment": [
+    "Second-marks measured from the RENDERED video. 0:00 is the video's first",
+    "frame — the instant you press Enter to sync the scorer.",
+    "",
+    "One row per word:",
+    "  start   The answer window OPENS — where the host begins REVEALING THE",
+    "          PREVIOUS word's answer (for word 1, where the intro ends and the",
+    "          lead-in begins). Scoring for the previous word stops here.",
+    "  teaser  Where the host speaks the SHORT hint; the overlay shows it then.",
+    "  hint    Where the host speaks the LONG hint (~4s later); it replaces the",
+    "          teaser on screen.",
+    "",
+    "Marks may be plain seconds (95) or clock strings (\"1:35\"), strictly",
+    "increasing, with start <= teaser < hint < next row's start.",
+    "",
+    "The scorer NEEDS 'start' + 'outro_start'; those drive scoring. 'teaser' and",
+    "'hint' only drive the overlay — leave them null and every hint just shows at",
+    "window open. A bad mark is printed and ignored, never scored on.",
+    "",
+    "outro_end: where the host's closing line ACTUALLY FINISHES — not where the",
+    "outro begins (that's outro_start). Optional: set it and the scorer",
+    "auto-switches the overlay to the after-show end card (leaderboard to",
+    "center, confetti, thank-you note) the instant it's reached. Leave it null",
+    "and nothing happens automatically — hit /end from a browser once you see",
+    "the outro wrapping up on the video.",
+    "",
+    "Run generate_questions.py first: it fills in the word list here."
+  ],
+  "windows": [],
+  "outro_start": null,
+  "outro_end": null
+}

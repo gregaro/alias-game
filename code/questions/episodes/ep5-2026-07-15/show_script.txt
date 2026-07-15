@@ -1,0 +1,107 @@
+=== INTRO (plays BEFORE the clock — record separately) ===
+Բարև ժողովուրդ, հավաքվեք էկրանների մոտ, սկսում ենք մեր բառախաղը։ Ես կկարդամ հուշումներ, իսկ դուք պետք է հնարավորինս արագ գրեք ճիշտ պատասխանը չատում, քանի որ արագությունը ձեզ ավելի շատ միավոր կբերի։ Պատրաստեք ձեր մատներն ու հումորի զգացումը, խոստանում եմ, որ շատ զվարճալի է լինելու։
+
+Windows below are each exactly 25s and run back-to-back with NO gaps. Start the scorer as WINDOW 1 opens; it auto-advances every 25s. Each window reveals the PREVIOUS word's answer at its start (safe — that window is already closed), then hints the current word.
+
+===== WINDOW 1/10 — 25s — SCORING: Յութուբ =====
+>>> OPEN 0:00  (scorer begins counting «Յութուբ»)
+[lead-in] Դե ինչ, տաքացնենք մեր ուղեղները առաջին պարզագույն առաջադրանքով։
+[teaser]  Անջատել գովազդը հինգ վայրկյանից։
+[pause 4 seconds]
+[hint]    Ամենահայտնի վիդեոկայքն է, որտեղ բոլորը վերջում խնդրում են սեղմել լայքն ու զանգակը։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 2/10 — 25s — SCORING: Խուտուտ տալ =====
+>>> OPEN 0:00  (scorer begins counting «Խուտուտ տալ»)
+[reveal «Յութուբ»] Ճիշտ պատասխանն է Յութուբ։ Տեսնեմ քանի հոգի է հիմա ժամանակ վատնում այս հարթակում կատուներ նայելու փոխարեն։
+[lead-in] Անցնենք հաջորդին, որը հաստատ ձեր հունից կհանի։
+[teaser]  Ծիծաղի բռնի շորթում։
+[pause 4 seconds]
+[hint]    Մատների չարաճճի հարձակումն է կողոսկրերիդ կամ թևատակերիդ վրա, որից ակամա սկսում ես գալարվել։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 3/10 — 25s — SCORING: Տոնածառ =====
+>>> OPEN 0:00  (scorer begins counting «Տոնածառ»)
+[reveal «Խուտուտ տալ»] Ճիշտ պատասխանն է Խուտուտ տալ։ Հուսով եմ՝ չատում գրելիս մտքում չէիք ծրագրում սպանել ձեզ տանջողին։
+[lead-in] Երրորդի համար պետք է շատ արագ կողմնորոշվեք, ժամանակը գնաց։
+[teaser]  Կատուների սիրելի ձմեռային զոհը
+[pause 4 seconds]
+[hint]    Այն կանաչ ու փշոտն է, որի տակ հունվարի մեկի առավոտյան նվերներ ես ման գալիս։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 4/10 — 25s — SCORING: Քավոր =====
+>>> OPEN 0:00  (scorer begins counting «Քավոր»)
+[reveal «Տոնածառ»] Ճիշտ պատասխանն է Տոնածառ։ Խոստովանեք, քանիսիդ տանն է այն մինչև գարուն զարդարված մնում։
+[lead-in] Տեսնենք, թե այս մեկը ով ամենաշուտը կգուշակի մեր խելացիներից։
+[teaser]  Հարսանիքի գլխավոր ու հարգարժան «մուծվողը»։
+[pause 4 seconds]
+[hint]    Փեսայի մտերիմն է, ում խոսքն օրենք է, իսկ կենացը պարտադիր խմում են հոտնկայս։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 5/10 — 25s — SCORING: Թթու =====
+>>> OPEN 0:00  (scorer begins counting «Թթու»)
+[reveal «Քավոր»] Անկասկած, ճիշտ պատասխանն է Քավոր։ Բոլորս էլ գիտենք, որ նրա կենացը միշտ խմում ենք միայն հոտնկայս։
+[lead-in] Կեսն արդեն անցանք, բայց մի թուլացեք, հաջորդը բավականին հետաքրքիր է։
+[teaser]  Ձմեռվա բանկաների խրթխրթան արքան
+[pause 4 seconds]
+[hint]    Աղաջրում պահված կաղամբն ու վարունգն է, որի անունով նաև դեմք ծամածռող համն են կոչում։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 6/10 — 25s — SCORING: Սիֆոն =====
+>>> OPEN 0:00  (scorer begins counting «Սիֆոն»)
+[reveal «Թթու»] Պատասխանն է Թթու։ Չատում արդեն զգում եմ այն անփոխարինելի ջրի հոտը, որը կյանքեր է փրկում հունվարի մեկին։
+[lead-in] Վեցերորդ առաջադրանքը պահանջում է ուշադրություն և արագ մատներ։
+[teaser]  Լվացարանի տակի հիմնական գլխացավանքը։
+[pause 4 seconds]
+[hint]    U-աձև պլաստմասե հարմարանքն է, որը հայրիկը քանդում է՝ խուսափելով սանտեխնիկ կանչելուց։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 7/10 — 25s — SCORING: Բժիշկ =====
+>>> OPEN 0:00  (scorer begins counting «Բժիշկ»)
+[reveal «Սիֆոն»] Ճիշտ բառն է Սիֆոն։ Հայրիկների հպարտությունն ու սանտեխնիկների ամենամեծ թշնամին արդեն բացահայտված է։
+[lead-in] Շարունակում ենք մեր մարաթոնը, փորձեք գտնել այս մեկի թաքնված իմաստը։
+[teaser]  Աշխարհի ամենաանհասկանալի ձեռագրի տերը։
+[pause 4 seconds]
+[hint]    Սպիտակ խալաթով մարդը, ում մոտ վազում ես ինտերնետում քո ախտանիշները գուգլելուց հետո։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 8/10 — 25s — SCORING: Կրոկոդիլ Գենա =====
+>>> OPEN 0:00  (scorer begins counting «Կրոկոդիլ Գենա»)
+[reveal «Բժիշկ»] Ով գրել էր Բժիշկ, ճիշտ է։ Բայց խնդրում եմ, այս հաղթանակից հետո միանգամից մի վազեք համացանց ձեր ախտանիշները փնտրելու։
+[lead-in] Ուշադիր լսեք հաջորդը, որովհետև սա իսկական փորձություն է լինելու ձեր հիշողության համար։
+[teaser]  Ականջավորի ամենականաչ ընկերը։
+[pause 4 seconds]
+[hint]    Անձրևի տակ հարմոն է նվագում ու դարդ անում, որ ծնունդը տարին մեկ է։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 9/10 — 25s — SCORING: Սարդ-մարդ =====
+>>> OPEN 0:00  (scorer begins counting «Սարդ-մարդ»)
+[reveal «Կրոկոդիլ Գենա»] Պատասխանն է Կրոկոդիլ Գենա։ Տեսնեմ, թե քանիսդ հիմա տխրեցիք, որ ձեր ծնունդն էլ է տարին ընդամենը մեկ անգամ։
+[lead-in] Նախավերջին բառն ենք խաղարկում, հավաքեք ձեր բոլոր ուժերն ու կենտրոնացեք։
+[teaser]  Պատերով մագլցող կարմրակապույտ դեռահասը։
+[pause 4 seconds]
+[hint]    Մորաքույր Մեյի սիրելի զարմիկն է, որը սիրում է գլխիվայր կախված համբուրվել անձրևի տակ։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 10/10 — 25s — SCORING: Մունդիալ =====
+>>> OPEN 0:00  (scorer begins counting «Մունդիալ»)
+[reveal «Սարդ-մարդ»] Ճիշտ պատասխանն է Սարդ-մարդ։ Չփորձեք տանը գլխիվայր կախվել պատուհանից, դա միայն կինոներում է ռոմանտիկ ստացվում։
+[lead-in] Եվ վերջապես, այսօրվա վերջին և ամենավճռորոշ առաջադրանքը։
+[teaser]  Չորս տարին մեկ սկսվող գժանոց։
+[pause 4 seconds]
+[hint]    Գլոբալ ֆուտբոլային մրցաշարը, որի ոսկե գավաթը վերջերս վերջապես իր տուն տարավ Մեսսին։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+=== OUTRO (after the last window closes) ===
+[reveal «Մունդիալ»] Այսօրվա վերջին ճիշտ պատասխանն է Մունդիալ։ Բազմոցի բոլոր պրոֆեսիոնալ մարզիչներին խնդրում եմ հանգստանալ և վայելել իրենց վաստակած միավորները։
+Շնորհավորում եմ մեր առաջատարներին, ովքեր այսօր ապացուցեցին, որ ամենաարագն ու հնարամիտն են։ Հաջորդ անգամ խոստանում եմ ավելի խճճված հուշումներ բերել, այնպես որ լավ մարզեք ձեր ուղեղները։ Միացեք մեզ հաջորդ էպիզոդում, կսպասեմ բոլորիդ նույն տեղում։
