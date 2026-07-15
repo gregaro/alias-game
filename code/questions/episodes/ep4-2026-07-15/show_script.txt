@@ -86,7 +86,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 >>> OPEN 0:00  (scorer begins counting «Արգենտինա»)
 [reveal «Բարձ»] Ճիշտ պատասխանն է Բարձ։ Խոստովանեք, որ հիմա էլ դեմ չէիք լինի շրջել սառը երեսն ու մի լավ քնել:
 [lead-in] Նախավերջին փորձը, էկրաններին մոտ են գալիս ամենաարագները։
-[teaser]  Արծաթե անունով պարող երկիրը
+[teaser]  Տանգո, սթեյք և Աստծո ձեռքը։
 [pause 4 seconds]
 [hint]    Եթե չգիտես այն երկիրը, որի հավաքականում փայլում է Մեսսին, պարզապես լքիր սեղանը։
 [viewers keep typing until the window ends]
