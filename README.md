@@ -106,10 +106,12 @@ same show instead of spawning junk folders.
   live solve-time stats.
 - **Stage 3 is plain code, no LLM:** it writes the reviewed hints into
   `questions.json` for the scorer, keeping existing scoring settings. Accepted answers
-  are then curated by hand — matching is exact, so every form a viewer might type has to
-  be listed (Armenian spellings, both Latin transliteration conventions, the English
-  name, nicknames, Russian loanwords in Cyrillic). Stage 3 carries those hand-added
-  answers forward on regeneration rather than clobbering them.
+  are then curated by hand — matching is exact (plus a one-character typo tolerance on
+  longer answers), so every form a viewer might type still has to be listed (Armenian
+  spellings, both Latin transliteration conventions, the English name, nicknames,
+  Russian loanwords in Cyrillic). Stage 3 carries those hand-added answers forward on
+  regeneration rather than clobbering them, and refuses to write an episode where two
+  words' answers are close enough to blur into each other.
 - **`show_scripter`** (stage 4) writes the host's frame around the hints — episode
   intro with the rules, a spoiler-free lead-in before each word, a reveal line after
   each answer window (often calling back to a hint's joke), and the outro — in the
@@ -136,9 +138,11 @@ API-suggested interval, and scores answers while a question's window is open:
 - **Armenian-aware matching** (`normalize.py`): NFC normalization, case folding, and
   correct handling of Armenian punctuation that sits *inside* words — the question mark
   `՞`, emphasis `՛`, exclamation `՜` and hyphen `֊` are deleted, not split, so
-  `Յո՞ւպիտեր` matches `Յուպիտեր`. Matching is exact on the normalized form (no fuzzy
-  matching — a chatty sentence never scores); spelling/transliteration variants are
-  listed per question instead.
+  `Յո՞ւպիտեր` matches `Յուպիտեր`. Matching is exact on the normalized form, plus a
+  one-character typo tolerance on answers 5+ characters long (never substring/sentence
+  matching — a chatty sentence never scores, and a different word is never close
+  enough in edit distance to slip through); spelling/transliteration variants are
+  still listed per question.
 - **Fairness rules learned the hard way:** score by stable `channelId`, not display
   name; only count messages published after the window opened (no backlog sniping);
   generous windows (~30s) because ultra-low-latency YouTube still puts viewers 3–10s

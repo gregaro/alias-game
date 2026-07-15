@@ -12,6 +12,7 @@ differently). Transliterations and alternate names (spiderman, ծույլ for
 words that likely need it.
 """
 import argparse
+import itertools
 import json
 import os
 import re
@@ -23,6 +24,8 @@ import db
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE.parent))        # code/, for episode.py
 import episode
+sys.path.insert(0, str(HERE.parent / "scorer"))   # code/scorer/, for normalize.py
+from normalize import normalize, edit_distance, FUZZY_MIN_LENGTH, FUZZY_MAX_DISTANCE
 
 DEFAULTS = {"window_seconds": 25, "points": [10, 8, 7, 6, 5, 4, 3, 2],
             "min_points": 1}
@@ -55,6 +58,38 @@ def answer_variants(word: str) -> list[str]:
     joined = "".join(re.split(r"[-\s]+", word.strip()))
     variants = [word.strip(), joined]
     return list(dict.fromkeys(variants))  # dedupe, keep order
+
+
+def check_collisions(questions: list[dict]) -> None:
+    """Refuse to write an episode where two DIFFERENT words could score off
+    the same chat message. scorer.matches() now accepts one-character typos
+    on answers >= FUZZY_MIN_LENGTH chars (see normalize.py), so it is no
+    longer enough to check exact strings — two words' answers could also be
+    close enough in edit distance to blur into each other. Checked against
+    all three existing episodes when this landed: zero collisions, either
+    way. Better to fail loudly here than have the scorer credit the wrong
+    word live."""
+    entries = [(q["word"], normalize(a)) for q in questions for a in q["answers"]]
+
+    # Exact: literally the same normalized string under two different words.
+    owner = {}
+    for word, na in entries:
+        if na in owner and owner[na] != word:
+            raise SystemExit(f"Answer collision: {na!r} matches BOTH "
+                             f"{owner[na]!r} and {word!r} — fix answers[] "
+                             "for one of them before running the show.")
+        owner[na] = word
+
+    # Fuzzy: close enough in edit distance that the SAME typo the scorer now
+    # forgives on one word would also land inside another word's tolerance.
+    long_entries = [(w, na) for w, na in entries if len(na) >= FUZZY_MIN_LENGTH]
+    for (w1, a1), (w2, a2) in itertools.combinations(long_entries, 2):
+        if w1 != w2 and edit_distance(a1, a2) <= FUZZY_MAX_DISTANCE:
+            raise SystemExit(
+                f"Fuzzy answer collision: {w1!r}'s answer {a1!r} is only "
+                f"{FUZZY_MAX_DISTANCE} edit(s) from {w2!r}'s answer {a2!r} — "
+                "a chat typo could score the wrong word. Fix one of them "
+                "before running the show.")
 
 
 def main():
@@ -93,6 +128,9 @@ def main():
     carried = sum(1 for e in show if e["word"] in kept)
     if carried:
         print(f"Carried hand-added answers forward for {carried} word(s).\n")
+
+    check_collisions(config["questions"])   # never write a file that could
+                                            # score the wrong word live
 
     tmp = str(QUESTIONS_FILE) + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:

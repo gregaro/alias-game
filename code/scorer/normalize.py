@@ -19,6 +19,33 @@ just makes the comparison fair and consistent on both sides.
 
 import unicodedata
 
+# Typo tolerance: a normalized answer of at least this many characters may be
+# matched at up to this edit distance. Tuned against a real rehearsal's chat
+# log (2026-07-14, ~70 wrong-scoring messages reviewed by hand): distance 1
+# recovered 6 genuine one-character typos with zero false positives and zero
+# collisions with any other word's answers across three episodes. Distance 2
+# started pulling in genuinely ambiguous guesses (a typo OR a different,
+# wrong word), so we don't go there. Below the length floor, one edit is a
+# large fraction of the string — "գազ" at distance 1 matches half the
+# alphabet's worth of unrelated short guesses, so short answers stay exact.
+FUZZY_MIN_LENGTH = 5
+FUZZY_MAX_DISTANCE = 1
+
+
+def edit_distance(a: str, b: str, cap: int = 3) -> int:
+    """Levenshtein distance, capped: returns cap+1 once exceeded rather than
+    finishing the full DP table. Answers here are short chat messages, so
+    there's no need for anything fancier than the textbook algorithm."""
+    if abs(len(a) - len(b)) > cap:
+        return cap + 1
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i] + [0] * len(b)
+        for j, cb in enumerate(b, 1):
+            cur[j] = min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb))
+        prev = cur
+    return prev[-1]
+
 
 def normalize(text: str) -> str:
     """Return a canonical, comparable form of a chat answer."""
@@ -57,19 +84,27 @@ def normalize(text: str) -> str:
 
 
 def matches(message: str, accepted: list[str]) -> bool:
-    """True if the normalized message equals any normalized accepted answer.
+    """True if the normalized message equals any normalized accepted answer —
+    or is a one-character typo of a long enough one (see FUZZY_MIN_LENGTH /
+    FUZZY_MAX_DISTANCE above).
 
-    Exact match on the normalized form. We deliberately avoid fuzzy/substring
-    matching here so that a chatty message like "is it paris lol" does NOT score
-    'paris'. If you want to accept answers embedded in a sentence, switch the
-    line below to a token-membership check — but exact match keeps scoring
-    predictable and hard to game. List variants explicitly in the questions
-    file instead.
+    We deliberately avoid SUBSTRING/sentence matching here so that a chatty
+    message like "is it paris lol" does NOT score 'paris' — that part is
+    still exact. The fuzzy part only forgives a slipped keystroke on the
+    SAME word; a different (if related) word — a synonym, a wrong guess —
+    sits far enough away in edit distance that it stays unmatched. Those
+    still need to be listed explicitly in the questions file, same as ever.
     """
     msg = normalize(message)
     if not msg:
         return False
-    return any(msg == normalize(a) for a in accepted)
+    for a in accepted:
+        na = normalize(a)
+        if msg == na:
+            return True
+        if len(na) >= FUZZY_MIN_LENGTH and edit_distance(msg, na) <= FUZZY_MAX_DISTANCE:
+            return True
+    return False
 
 
 if __name__ == "__main__":
@@ -86,6 +121,16 @@ if __name__ == "__main__":
         ("Մարս", ["Յուպիտեր", "Jupiter"], False),      # wrong answer
         ("is it jupiter", ["Jupiter"], False),         # sentence, exact-match guards it
         ("", ["Jupiter"], False),                       # empty
+        # Fuzzy: one-character typo on a long (>=5 char) answer, real case
+        # from a 2026-07-14 rehearsal — recovered live, no false positive.
+        ("Վարդավար", ["Վարդավառ"], True),
+        ("Փորիզ", ["Փարիզ"], True),
+        # Fuzzy must NOT bridge to a different word, even a related one —
+        # only a typo of the SAME string. Distance from "Յուպիտեր" is > 1.
+        ("Մարրս", ["Յուպիտեր"], False),
+        # Short answers stay exact even at distance 1 — a 3-letter word one
+        # edit away covers too much of the alphabet to mean anything.
+        ("գաս", ["գազ"], False),
     ]
     ok = 0
     for msg, acc, expect in cases:

@@ -248,10 +248,23 @@ triggered"), but a stale source had no idea what that phase meant.
 - **The overlay only shows hints the host actually SAYS.** `questions.json`
   holds three hints per word, but the script speaks only the first and last —
   the middle one is a spare. Never render it.
-- **Answer matching is exact on the normalized form.** Every spelling a viewer
-  might type has to be listed in `answers[]` — transliterations, the English
-  name, nicknames, Russian loanwords in Cyrillic. A missing variant is a viewer
+- **Answer matching is exact on the normalized form, plus one-character typo
+  tolerance on longer answers.** `matches()` in `normalize.py` accepts an
+  answer of 5+ normalized characters at edit distance <= 1 — tuned against a
+  real rehearsal's chat log (2026-07-14): recovered 6 genuine typos, zero
+  false positives, zero collisions across three episodes' real answers.
+  Short answers stay exact (one edit on a 3-letter word covers too much of
+  the alphabet to mean anything), and a SYNONYM or different word is never
+  close enough in edit distance to slip through — those still have to be
+  listed in `answers[]` explicitly, same as ever. Every spelling a viewer
+  might type still needs listing — transliterations, the English name,
+  nicknames, Russian loanwords in Cyrillic. A missing variant is a viewer
   who knew the answer and scored zero.
+- **`generate_questions.py` refuses to write an episode where two different
+  words' answers are close enough to blur into each other** — checked both
+  exactly and at the same fuzzy distance the scorer now forgives, since a
+  chat typo landing inside two words' tolerance at once would credit the
+  wrong one. Fails loudly (`SystemExit`) rather than writing a bad file.
 - **The failures are the ones you can't see.** A wrong-spelling answer and a
   too-late answer both used to be dropped silently, so the viewers the system
   failed left no trace and a show could look clean while quietly losing people.
@@ -279,9 +292,12 @@ auto-translation does NOT affect API data), so matching runs on real Armenian:
   (U+055E), emphasis ՛, exclamation ՜, apostrophe, and the Armenian hyphen ֊ sit
   *inside* a word. Replacing them with a space wrongly splits the word.
 - Other punctuation/symbols/separators become spaces; whitespace is collapsed.
-- Matching is **exact on the normalized form** (no fuzzy/substring), so a chatty
-  sentence won't score. List every acceptable variant (Armenian spelling,
-  transliteration, Latin) in `questions.json` instead.
+- Matching is **exact on the normalized form, plus a one-character typo
+  tolerance on answers 5+ characters long** — never substring/sentence
+  matching, so a chatty sentence still won't score. List every acceptable
+  variant (Armenian spelling, transliteration, Latin) in `questions.json`
+  regardless; the fuzzy step only forgives a slipped keystroke, not a
+  different word.
 
 ## Status
 
