@@ -1,0 +1,107 @@
+=== INTRO (plays BEFORE the clock — record separately) ===
+Ողջույն, չատ ջան, բարի գալուստ մեր տարօրինակ ու ուրախ բառախաղ։ Կանոնները շատ պարզ են՝ ես նկարագրում եմ բառը հուշումներով, դուք կռահում եք ու արագ գրում չատում, իսկ ամենաարագները հավաքում են միավորներ: Անջատեք ձեր լրջությունը, եկեք տեսնենք, թե ով է այսօր ամենաճարպիկը:
+
+Windows below are each exactly 25s and run back-to-back with NO gaps. Start the scorer as WINDOW 1 opens; it auto-advances every 25s. Each window reveals the PREVIOUS word's answer at its start (safe — that window is already closed), then hints the current word.
+
+===== WINDOW 1/10 — 25s — SCORING: Ընտրություններ =====
+>>> OPEN 0:00  (scorer begins counting «Ընտրություններ»)
+[lead-in] Դե ինչ, գնացինք, առաջին բառի համար ունեք ուղիղ քսանհինգ վայրկյան։
+[teaser]  Բակերի ասֆալտապատման և խոստումների սեզոն։
+[pause 4 seconds]
+[hint]    Միակ առիթը, երբ հարևաններով գնում եք դպրոցի մարզադահլիճ՝ քվեաթերթիկ ծալելու և արկղը գցելու։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 2/10 — 25s — SCORING: Անձնագիր =====
+>>> OPEN 0:00  (scorer begins counting «Անձնագիր»)
+[reveal «Ընտրություններ»] Ճիշտ պատասխանն էր Ընտրություններ։ Հուսով եմ՝ բոլորդ հասցրիք ձեր ձայնը տալ մինչև ժամանակի ավարտը:
+[lead-in] Երկրորդի համար եկեք տեսնենք՝ ով ավելի արագ կգլխի կընկնի։
+[teaser]  Սահմանը հատելու կապույտ բանալին։
+[pause 4 seconds]
+[hint]    Բանկում վարկ ուզելիս կամ օդանավակայանում ստուգում անցնելիս առաջին հերթին հենց սա ես գրպանիցդ հանում։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 3/10 — 25s — SCORING: Մհեր Մկրտչյան =====
+>>> OPEN 0:00  (scorer begins counting «Մհեր Մկրտչյան»)
+[reveal «Անձնագիր»] Այո, դա Անձնագիր էր։ Ով չկռահեց, երևի իր նկարն իրոք շատ սիրուն է ստացվել այնտեղ:
+[lead-in] Անցանք առաջ, հաջորդը կարծես թե շատերին է ծանոթ լինելու։
+[teaser]  Տխուր աչքերով գյումրեցի լեգենդը։
+[pause 4 seconds]
+[hint]    Ժողովրդի պաշտելի Ֆրունզիկն է, ում մեծ քիթն ու տաղանդը հայկական կինոյի գլխավոր այցեքարտերից են։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 4/10 — 25s — SCORING: Ակնոց =====
+>>> OPEN 0:00  (scorer begins counting «Ակնոց»)
+[reveal «Մհեր Մկրտչյան»] Ճիշտ պատասխանն էր Մհեր Մկրտչյան։ Չատում իսկական դիլիջանցու պես շատ արագ կողմնորոշվեցիք:
+[lead-in] Պատրաստեք ձեր մատները, չորրորդ փուլի հարցն արդեն էկրանին է։
+[teaser]  Շապիկի փեշով մաքրվող ապակի:
+[pause 4 seconds]
+[hint]    Դրիր քթիդ, ու միանգամից կթվաս շատ խելացի, կամ գոնե մենյուն նորմալ կկարդաս:
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 5/10 — 25s — SCORING: Գուլպա =====
+>>> OPEN 0:00  (scorer begins counting «Գուլպա»)
+[reveal «Ակնոց»] Պատասխանն է Ակնոց։ Իսկ հիմա ստուգեք, հաստատ ձեր գլխին դրած չէ՞ր, մինչև փնտրում էիք պատասխանը։
+[lead-in] Տեսնենք՝ այս մեկի վրա քանի հոգի կխճճվի, գնաց ժամանակը։
+[teaser]  Լվացքի մեքենայի սիրած նախաճաշը։
+[pause 4 seconds]
+[hint]    Հագնում ես ոտքերիդ կոշիկից առաջ, իսկ սանդալների հետ համադրելը ուղղակի ոճային հանցագործություն է։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 6/10 — 25s — SCORING: Տոպրակ =====
+>>> OPEN 0:00  (scorer begins counting «Տոպրակ»)
+[reveal «Գուլպա»] Իհարկե, դա Գուլպա էր։ Համոզված եմ, այսօր դուք էլ եք դրա կորած զույգը ման եկել:
+[lead-in] Կիսեցինք խաղը, հիմա պետք է էլ ավելի արագ գրեք։
+[teaser]  Խշխշան գանձ՝ խոհանոցի դարակում։
+[pause 4 seconds]
+[hint]    Դրամարկղի մոտ միշտ հարցնում են՝ տա՞մ սրանից, թե՞ տնից քոնն ես բերել։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 7/10 — 25s — SCORING: Անձրև =====
+>>> OPEN 0:00  (scorer begins counting «Անձրև»)
+[reveal «Տոպրակ»] Պատասխանն էր Տոպրակ։ Ով առաջինը գրեց, հաստատ տանը տոպրակների մեծ հավաքածու ունի։
+[lead-in] Շունչ քաշեք, կենտրոնացեք և որսացեք հաջորդը։
+[teaser]  Թարմ արդուկած մազերի գլխավոր թշնամին։
+[pause 4 seconds]
+[hint]    Ամպերից թափվող ջուրն է, որը ստիպում է շտապ հովանոց բացել կամ մինչև ոսկորները թրջվել։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 8/10 — 25s — SCORING: Բարձ =====
+>>> OPEN 0:00  (scorer begins counting «Բարձ»)
+[reveal «Անձրև»] Սա Անձրև բառն էր։ Լավ է, որ չատում նստած չեք թրջվում ու ստիպված չեք խուճապահար փախչել։
+[lead-in] Ութերորդ հարցը, ուշադիր նայեք էկրանին ու գրոհեք ստեղնաշարը։
+[teaser]  Թքոտված երազների լուռ վկան։
+[pause 4 seconds]
+[hint]    Մահճակալիդ այն փափուկ իրն է, որին գլուխդ հանձնելուն երազում ես ամբողջ աշխատանքային օրը։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 9/10 — 25s — SCORING: Արգենտինա =====
+>>> OPEN 0:00  (scorer begins counting «Արգենտինա»)
+[reveal «Բարձ»] Ճիշտ պատասխանն է Բարձ։ Խոստովանեք, որ հիմա էլ դեմ չէիք լինի շրջել սառը երեսն ու մի լավ քնել:
+[lead-in] Նախավերջին փորձը, էկրաններին մոտ են գալիս ամենաարագները։
+[teaser]  Մատե, տանգո և ֆուտբոլային աստվածներ։
+[pause 4 seconds]
+[hint]    Եթե չգիտես այն երկիրը, որի հավաքականում փայլում է Մեսսին, պարզապես լքիր սեղանը։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 10/10 — 25s — SCORING: Թռչել =====
+>>> OPEN 0:00  (scorer begins counting «Թռչել»)
+[reveal «Արգենտինա»] Այո, դա Արգենտինա էր։ Եթե Մեսսիի անունը լսելով չգրեցիք, ուրեմն ֆուտբոլից լրիվ հեռու եք:
+[lead-in] Եվ վերջապես, այսօրվա վերջին հնարավորությունը միավոր պոկելու։
+[teaser]  Պինգվինների ու ջայլամների հավերժական երազանքը։
+[pause 4 seconds]
+[hint]    Այն, ինչ հանգիստ անում են ճնճղուկներն ու ագռավները օդում՝ լրիվ կտրվելով մայր հողից։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+=== OUTRO (after the last window closes) ===
+[reveal «Թռչել»] Պատասխանն էր Թռչել։ Ով ճիշտ գրեց, հաստատ քնի մեջ էլ է բոյովանում։
+Դե ինչ, շնորհավորում եմ մեր այսօրվա առաջատարներին, իսկական գազան էիք: Չմոռանաք միանալ մեզ հաջորդ խաղին, որտեղ էլ ավելի հետաքրքիր բառեր ենք ունենալու: Լավ մնացեք, շուտով կհանդիպենք։
