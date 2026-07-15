@@ -28,13 +28,13 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 [lead-in] Անցանք առաջ, հաջորդը կարծես թե շատերին է ծանոթ լինելու։
 [teaser]  Տխուր աչքերով գյումրեցի լեգենդը։
 [pause 4 seconds]
-[hint]    Ժողովրդի պաշտելի Ֆրունզիկն է, ում մեծ քիթն ու տաղանդը հայկական կինոյի գլխավոր այցեքարտերից են։
+[hint]    Այն լեգենդար դերասանը, որն ապացուցեց, որ հայկական քիթն ու անսահման տաղանդը իրար անթերի սազում են։
 [viewers keep typing until the window ends]
 <<< CLOSE 0:25  (next window opens immediately)
 
 ===== WINDOW 4/10 — 25s — SCORING: Ակնոց =====
 >>> OPEN 0:00  (scorer begins counting «Ակնոց»)
-[reveal «Մհեր Մկրտչյան»] Ճիշտ պատասխանն էր Մհեր Մկրտչյան։ Չատում իսկական դիլիջանցու պես շատ արագ կողմնորոշվեցիք:
+[reveal «Մհեր Մկրտչյան»] Ճիշտ պատասխանն է Մհեր Մկրտչյան։ Դե խոստովանեք, որ հենց հայկական քթի պահը լսեցիք, միանգամից գլխի ընկաք։
 [lead-in] Պատրաստեք ձեր մատները, չորրորդ փուլի հարցն արդեն էկրանին է։
 [teaser]  Շապիկի փեշով մաքրվող ապակի:
 [pause 4 seconds]
@@ -56,7 +56,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 >>> OPEN 0:00  (scorer begins counting «Տոպրակ»)
 [reveal «Գուլպա»] Իհարկե, դա Գուլպա էր։ Համոզված եմ, այսօր դուք էլ եք դրա կորած զույգը ման եկել:
 [lead-in] Կիսեցինք խաղը, հիմա պետք է էլ ավելի արագ գրեք։
-[teaser]  Խշխշան գանձ՝ խոհանոցի դարակում։
+[teaser]  Խոհանոցի դարակի ավանդական մատրյոշկան
 [pause 4 seconds]
 [hint]    Դրամարկղի մոտ միշտ հարցնում են՝ տա՞մ սրանից, թե՞ տնից քոնն ես բերել։
 [viewers keep typing until the window ends]
@@ -86,7 +86,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 >>> OPEN 0:00  (scorer begins counting «Արգենտինա»)
 [reveal «Բարձ»] Ճիշտ պատասխանն է Բարձ։ Խոստովանեք, որ հիմա էլ դեմ չէիք լինի շրջել սառը երեսն ու մի լավ քնել:
 [lead-in] Նախավերջին փորձը, էկրաններին մոտ են գալիս ամենաարագները։
-[teaser]  Մատե, տանգո և ֆուտբոլային աստվածներ։
+[teaser]  Արծաթե անունով պարող երկիրը
 [pause 4 seconds]
 [hint]    Եթե չգիտես այն երկիրը, որի հավաքականում փայլում է Մեսսին, պարզապես լքիր սեղանը։
 [viewers keep typing until the window ends]
