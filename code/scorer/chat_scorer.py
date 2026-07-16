@@ -442,10 +442,14 @@ class Scorer:
             # `window_open`; it has to run on every message, against the word
             # that just closed. (The two answer sets never overlap: stage 3
             # rejects a variant that would match two words.)
-            late = self._note_late(cid, name, text, ts)
-            if late:
-                verdict, word, extra = "late", late["word"], {
-                    "seconds_late": round(late["seconds_late"], 1)}
+            note = self._note_late(cid, name, text, ts)
+            if note and note.get("kind") == "recovered":
+                verdict, word = "scored", note["word"]
+                extra = {"points": note["points"], "rank": note["rank"],
+                         "total": note["total"], "recovered_poll_lag": True}
+            elif note:
+                verdict, word, extra = "late", note["word"], {
+                    "seconds_late": round(note["seconds_late"], 1)}
             elif not self.window_open:
                 verdict, word = "no_window", None
             elif ts and ts < self.window_open_at:
@@ -498,21 +502,56 @@ class Scorer:
         return rec
 
     def _note_late(self, cid, name, text, ts):
-        """A correct answer that arrived after its window shut. Recorded ONLY —
-        never scored, or chat could answer while the host is saying the word.
-        Caller holds the lock. Returns the record, or None if this isn't one."""
+        """An answer to the just-closed window that reached us AFTER
+        `self.window_open` had already flipped false. Two different causes,
+        told apart by comparing the message's SEND time (ts) to the window's
+        close boundary — not by the order we happened to process them in:
+
+          - sent AFTER close (seconds_late > 0): the viewer really was slow.
+            Recorded only, never scored — see LATE_GRACE_SECONDS above.
+          - sent AT OR BEFORE close (seconds_late <= 0): the viewer was on
+            time; it's YouTube's polling that delivered the message late, not
+            them. Score it against the window it actually belongs to — the
+            same decay/one-shot-per-channel rules as a normal in-window
+            answer, just applied to the just-closed window's counters instead
+            of the new one's.
+
+        Without this split, an answer sent a moment before the boundary but
+        processed a moment after it falls through to verdict "no_window" with
+        no word attached — invisible to both scoring and the late report.
+
+        Caller holds the lock. Returns the record, or None if this isn't
+        an answer to the just-closed window at all."""
         c = self._closed
         if not c or not ts:
             return None
         seconds_late = (ts - c["closed_at"]).total_seconds()
-        if not 0 < seconds_late <= LATE_GRACE_SECONDS:
+        if not -LATE_GRACE_SECONDS <= seconds_late <= LATE_GRACE_SECONDS:
             return None
-        if cid in c["scored"] or cid in c["noted"]:
-            return None  # already scored in time, or already counted once as late
+        if cid in c["scored"]:
+            return None  # already scored this window, in time or recovered
         if not matches(text, c["answers"]):
             return None
+
+        if seconds_late <= 0:
+            pts = (self.points[c["correct_count"]]
+                   if c["correct_count"] < len(self.points) else self.min_points)
+            c["correct_count"] += 1
+            c["scored"].add(cid)
+            self.scores[cid] = self.scores.get(cid, 0) + pts
+            self.names[cid] = name
+            print(f"  ✓ {name} +{pts}  (#{c['correct_count']} correct on "
+                  f"«{c['word']}», recovered from poll lag)  total={self.scores[cid]}")
+            self.publish_state(question=self._q, window_ends_at=self._ends,
+                               phase="question")
+            return {"kind": "recovered", "word": c["word"], "points": pts,
+                    "rank": c["correct_count"], "total": self.scores[cid]}
+
+        if cid in c["noted"]:
+            return None  # already counted once as late
         c["noted"].add(cid)     # count a person once, not once per repeat message
-        rec = {"word": c["word"], "name": name, "seconds_late": seconds_late}
+        rec = {"kind": "late", "word": c["word"], "name": name,
+               "seconds_late": seconds_late}
         self.late.append(rec)
         print(f"  ⏱ LATE  {name} had «{c['word']}» {seconds_late:.1f}s after the "
               "window closed — no points")
@@ -594,6 +633,7 @@ class Scorer:
                 "word": self.word,
                 "answers": self.current_answers,
                 "scored": set(self.scored_channels),
+                "correct_count": self.correct_count,
                 "noted": set(),
                 "closed_at": datetime.now(timezone.utc),
             }
