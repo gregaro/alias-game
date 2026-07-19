@@ -8,9 +8,12 @@ speed decay, and renders a live leaderboard on the stream. The words come from l
 trend research, the hints are written by an LLM with a sarcastic party-host persona,
 and the host's video is generated with TTS + avatar tools.
 
-> **Status:** pre-launch. The full pipeline works end-to-end and a first episode has been
-> rendered and live-tested on YouTube; next milestone is a dress rehearsal on an unlisted
-> stream. This README evolves with the project.
+> **Status:** pre-launch. The full pipeline works end-to-end; a dress rehearsal has run
+> live on an unlisted YouTube stream with real chat participants, scoring and leaderboard
+> working as designed. Next milestone is the first public episode. This README evolves
+> with the project.
+
+![Overlay during the dress rehearsal: leaderboard, host avatar, question lower-third, and live YouTube chat](assets/screenshots/dress-rehearsal-overlay.png)
 
 ## How a round works
 
@@ -157,6 +160,8 @@ API-suggested interval, and scores answers while a question's window is open:
 ## Repository layout
 
 ```
+assets/
+└── screenshots/ readme/reference screenshots (e.g. the overlay during the dress rehearsal)
 code/
 ├── agents/      config-driven LLM agents, skills (SKILL.md per role), SQLite state,
 │                trend fetchers, and the two per-show pipeline commands
@@ -198,7 +203,7 @@ at `http://<pi-ip>:8080`, 1920×1080, layered above the host video.
 - [x] First avatar clip (TTS → talking-head video)
 - [x] Full episode rendered as one HeyGen video, with inline pause markers
 - [x] Question advancement automated in sync with the video (`timeline.json`)
-- [ ] Dress rehearsal on an unlisted stream
+- [x] Dress rehearsal on an unlisted stream
 - [ ] First public episode
 - [ ] Feed live solve stats back into hint difficulty (difficulty_monitor)
 
