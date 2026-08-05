@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yaml
 
+import agent as agent_mod
 import db
 from agent import Agent
 
@@ -18,6 +19,9 @@ class Orchestrator:
     def __init__(self, config_path: Path = CONFIG_PATH):
         with open(config_path) as f:
             self.config = yaml.safe_load(f)
+
+        # Must happen before any model is built — it decides their callbacks.
+        agent_mod.set_observability(self.config.get("observability", "none"))
 
         self.agents: dict[str, Agent] = {
             name: Agent(name, cfg)
@@ -33,9 +37,17 @@ class Orchestrator:
             raise KeyError(f"No agent named {name!r} in config")
         return self.agents[name]
 
-    def run(self, name: str, user_input: str, context=None, persist: bool = True):
+    def run(self, name: str, user_input: str, context=None,
+            persist: bool = True, trace=None, **tags):
+        """Run one agent once. `trace` and `tags` are passed straight through
+        to the trace log, so a call can be attributed to the word and round
+        it belongs to."""
         agent = self.spawn(name)
-        result = agent.run(user_input, context)
+        result = agent.run(user_input, context, trace=trace, **tags)
         if persist:
             db.save_state(name, "last_output", result)
         return result
+
+    def settings(self, section: str) -> dict:
+        """A non-agent config block (e.g. `refinement`), or {} if absent."""
+        return self.config.get(section) or {}

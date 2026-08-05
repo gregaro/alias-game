@@ -43,9 +43,26 @@ code/
 │   │                   shows don't repeat themselves (unless rehearsal_mode
 │   │                   is on in config.yaml).
 │   ├── generate_hints.py  Stage two: reads the latest word set from the DB,
-│   │                   runs hint_generator per word, saves show-ready
-│   │                   [{word, hints}] back to the DB. Flags hints that leak
-│   │                   their target word — review before TTS recording.
+│   │                   runs the REFINEMENT LOOP per word (not a single call
+│   │                   — see refine.py), saves show-ready [{word, hints}]
+│   │                   back to the DB with each word's status. Words run in
+│   │                   parallel. `--word W` refines ONE word and prints it
+│   │                   without touching the DB: the cheap way to test a
+│   │                   prompt change (~4 calls, not ~40).
+│   ├── refine.py       The loop engine: produce -> evaluate -> revise, up to
+│   │                   max_rounds, keeping the BEST candidate rather than the
+│   │                   last. Knows nothing about hints; a role plugs in a
+│   │                   spec. Self-test: `python refine.py`.
+│   ├── hint_loop.py    The hint half of that loop — gates, prompts, ranking,
+│   │                   accept condition, and the blind-solver measurement.
+│   │                   Self-test: `python hint_loop.py`.
+│   ├── tracing.py      Append-only JSONL trace of a run (code/logs/agents/).
+│   │                   Named tracing, not trace: `trace` shadows a stdlib
+│   │                   module and sits on sys.path[0] here.
+│   ├── review_agents.py  Reads a trace and prints what to act on: words that
+│   │                   missed the bar, rounds where the loop made things
+│   │                   WORSE, solver extremes, tokens per model. The
+│   │                   review_log.py of the agent side — run it after a run.
 │   ├── generate_questions.py  Stage three (no LLM): hints from the DB ->
 │   │                   ../questions/questions.json for the scorer. Keeps
 │   │                   existing scoring settings; answers still need a
@@ -76,6 +93,7 @@ code/
 │   ├── config.yaml     Per-agent provider/model/temperature/skill routing.
 │   │                   Add an agent by adding a block; no code changes.
 │   └── skills/         One SKILL.md per agent role: hint_generation,
+│                       hint_critique, hint_solving, show_script,
 │                       difficulty_tuning, trend_research.
 ├── overlay/
 │   ├── server.py       Flask overlay server. Serves overlay.html at /, live
@@ -135,6 +153,10 @@ code/
 │   ├── youtube_auth.py OAuth with token caching. First run opens a browser;
 │   │                   later runs refresh silently. Reads/writes ../secrets/.
 │   └── test_youtube_auth.py  Standalone auth smoke test (prints channel name).
+├── logs/agents/<timestamp>.jsonl      One append-only trace per AGENT run:
+│                       every LLM call (model, tokens, latency, the RENDERED
+│                       prompt) plus every round's gates/scores/solver result.
+│                       Read it with review_agents.py. Gitignored.
 ├── logs/<episode>/<timestamp>.jsonl   One append-only log per RUN (a rehearsal
 │                       and the real show are different facts; neither
 │                       overwrites the other). Every chat message gets exactly
@@ -175,7 +197,9 @@ Agents (need `ANTHROPIC_API_KEY`/`OPENAI_API_KEY`/`OPENROUTER_API_KEY` in
 ```
 python code/agents/new_episode.py    # per show, stage 0: new folder + point current_episode at it
 python code/agents/research_words.py # stage 1: trends -> word set
-python code/agents/generate_hints.py # stage 2: word set -> hints
+python code/agents/generate_hints.py # stage 2: word set -> hints (agent loop)
+python code/agents/generate_hints.py --word ալարկոտ   # one word, nothing saved
+python code/agents/review_agents.py  # what the loop did, and what it cost
 python code/agents/generate_questions.py   # stage 3: hints -> questions.json
 python code/agents/generate_show_script.py # stage 4: hints -> clip script
 python code/agents/main.py           # demo: generate hints for one word
@@ -286,6 +310,63 @@ triggered"), but a stale source had no idea what that phase meant.
   `display: none`: an element leaving the flex row shifts the text sideways for
   a frame, which reads as a glitch on stream.
 
+## The agent refinement loop (refine.py / hint_loop.py)
+
+Stage 2 is a real agent loop, not a script with an LLM call in it. Per word:
+generate -> code gates -> blind solver -> critic -> revise, up to
+`refinement.max_rounds` (3). Lessons from building and running it:
+
+- **Three vendors, so nothing grades its own work.** Writer is Gemini,
+  critic is Claude, solver is gpt-4o-mini. The generator's *fallback* was
+  moved off `claude-opus-4-8` for the same reason — a fallback firing would
+  have quietly put writer and critic on one model.
+- **Measure guessability, never judge it.** A critic that knows the answer
+  cannot un-know it, so "is this still guessable?" is a question it always
+  answers yes to. A blind solver that never sees the word is the only honest
+  signal. It runs BEFORE the critic so the critic sees the result.
+- **The solver only climbs the rungs the audience climbs** — hint 1, then
+  hints 1+3. Hint 2 is a spare that is never spoken (see below), so grading a
+  ladder through it would measure a show that doesn't exist.
+- **Judge the solver's guess exactly as you'd judge a viewer's**, via the
+  scorer's `matches()` AND the curated answers from past episodes. It once
+  answered «ծույլ» for «ալարկոտ» — a synonym this file lists as a valid
+  answer — and three good rounds were marked "too obscure" for it.
+- **The solver is not your audience.** gpt-4o-mini crushes world knowledge
+  and whiffs on local jokes, exactly inverted from viewers. Treat its
+  extremes as advisory and compare `solved_at` against real chat solve rates
+  in `logs/<episode>/` after a show before trusting it further.
+- **Rank on the ladder before the rubric.** Measured live: round 2 scored a
+  point higher AND gave the answer away in the teaser, so a score-only
+  ranking kept the worse candidate. `_SOLVER_RANK` puts a correct ladder
+  above taste points. Too-easy still beats never-solved — a giveaway leaves a
+  playable round; an unreachable word is dead air.
+- **Never let humor be bought with clarity:** acceptance uses `min()` over
+  the rubric, not a total, so a 5 for humor can't pay for a 2 in escalation.
+- **`keep_unchanged` is enforced in CODE, not asked for in the prompt.** The
+  writer was told to keep hints 1 and 3 and rewrote hint 1 anyway. A kept
+  hint is now restored verbatim. But a hint the critic wrote a NOTE about is
+  never kept (the critic contradicted itself; the note is more specific), and
+  the solver overrides both — a giveaway teaser must move whatever the critic
+  says.
+- **Stop when no move exists.** If gates are clean and the critic keeps all
+  three hints with nothing noted, another round is provably identical.
+  Observed burning a full round to change nothing before `exhausted` existed.
+- **Gate in code before paying for opinions.** A hint containing its own
+  target word needs a rewrite, not a critique — the leak check short-circuits
+  the round and skips ~3 calls.
+- **A loop's failures are invisible; log the decisions, not just the calls.**
+  A hosted tracer gives you prompts, tokens and latency — none of which say
+  why round 2 scored worse than round 1. That is why `tracing.py` records
+  gates/scores/solver per round, and why `review_agents.py` leads with
+  regressions. `observability: none` is the default and works offline; the
+  LangSmith/Langfuse seam in `build_model()` is there if a UI is ever wanted.
+- **Log the RENDERED prompt.** A bad revise round is nearly always the critic
+  notes and the kept-hints block contradicting each other, which the input
+  variables don't show.
+- **Cost is multiplicative.** 10 words x rounds x ~4 calls. Words refine in
+  parallel (`parallel_words`) because that is the wall-clock fix; use
+  `--word` to iterate on prompts without paying for the full set.
+
 ## Armenian text handling (normalize.py)
 
 The Data API returns the original text the viewer typed (creator-device
@@ -311,6 +392,13 @@ chat reader + scoring. **Phase 5 in progress** — three episodes exist
 measured `start`/`teaser`/`hint`/`outro_end` timeline, curated answers, and an
 after-show end card that auto-triggers at `outro_end`. `rehearsal_mode` is off
 in `agents/config.yaml`.
+
+**Agents are being made real agents** (branch
+`worktree-agent-refinement-loop`). Stage 2 (hints) now runs the refinement
+loop above and is validated on real single-word runs; a full 10-word run has
+not been done yet. Stage 1 (`research_words.py`) is still a single pass —
+porting it onto the same engine is the next step, and is the test of whether
+`refine.py`'s split holds for a differently-shaped role.
 
 ## Open decisions
 

@@ -16,9 +16,34 @@ agents:
     skill: hint_generation       # -> skills/hint_generation/SKILL.md
     output: json                 # json | text
     fallback:                    # tried when the primary errors mid-show
-      provider: anthropic
-      model: claude-opus-4-8     # A/B runner-up; rejects temperature — omit it
-      max_tokens: 600
+      provider: openrouter       # NOT claude-opus-4-8 any more: that is the
+      model: openai/gpt-4o       # critic's model, and a fallback firing would
+      temperature: 0.8           # otherwise put writer and critic on the same
+      max_tokens: 800            # model — self-grading, silently.
+
+  # Reviews the generator's hints against the rubric in skills/hint_critique.
+  # Deliberately a different vendor from the writer: nothing grades its own
+  # work. Sees the target word (it must, to catch leaks and judge the ladder).
+  hint_critic:
+    provider: anthropic
+    model: claude-opus-4-8       # rejects temperature — omit it
+    max_tokens: 2000
+    skill: hint_critique
+    output: json
+
+  # Guesses the word from the hints, BLIND — never told the answer. This is
+  # the only honest measure of guessability: a critic that knows the word
+  # cannot un-know it. Cheap model on purpose, it is called 2x per round.
+  # Billed through OpenRouter rather than the direct OpenAI account, which is
+  # out of credits (2026-08-04). Still a third vendor's model, which is the
+  # part that matters — it must not share a family with writer or critic.
+  hint_solver:
+    provider: openrouter
+    model: openai/gpt-4o-mini
+    temperature: 0
+    max_tokens: 400
+    skill: hint_solving
+    output: json
 
   difficulty_monitor:
     provider: openai             # cheap model for high-volume scoring
@@ -40,6 +65,8 @@ agents:
       model: claude-opus-4-8       # rejects temperature — omit it
       max_tokens: 3000
 
+  # NOTE: trend_researcher is still a single-pass agent. Porting it onto the
+  # same refinement loop is the next commit on this branch.
   trend_researcher:
     provider: openrouter           # A/B winner: best Armenian wildcards, only
                                    # model that mines the Armenian YouTube feed
@@ -51,3 +78,26 @@ agents:
                                    # before the JSON; give generous headroom
     skill: trend_research
     output: json
+
+# The refinement loop (refine.py). Cost here is MULTIPLICATIVE: 10 words x
+# rounds x ~4 calls per round. Most words settle in round 1-2, so the real
+# bill is far under the worst case — but raise max_rounds knowing what it
+# multiplies.
+refinement:
+  max_rounds: 3          # ceiling is 5; 3 is the default for cost reasons
+  accept_min_score: 4    # EVERY rubric dimension, not the average — humor
+                         # must not be purchasable with clarity
+  plateau_rounds: 2      # no improvement twice running -> stop thrashing
+  parallel_words: 4      # words are independent; this is the wall-clock fix
+
+# Observability. Every run always writes code/logs/agents/<timestamp>.jsonl
+# (read it with review_agents.py) — that is the layer that records WHY a
+# round scored what it scored, which no generic tracing tool knows to ask
+# for. This flag only adds a hosted trace UI on top.
+#
+#   none      — default. Works offline, on the Pi, with no account.
+#   langsmith — set LANGSMITH_TRACING / LANGSMITH_API_KEY in .env
+#   langfuse  — set LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY in .env
+#
+# Turning one on ships your prompts and your unaired show to a third party.
+observability: none
