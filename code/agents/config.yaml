@@ -34,9 +34,11 @@ agents:
   # Guesses the word from the hints, BLIND — never told the answer. This is
   # the only honest measure of guessability: a critic that knows the word
   # cannot un-know it. Cheap model on purpose, it is called 2x per round.
-  # Billed through OpenRouter rather than the direct OpenAI account, which is
-  # out of credits (2026-08-04). Still a third vendor's model, which is the
-  # part that matters — it must not share a family with writer or critic.
+  # OpenAI models go through OpenRouter, never `provider: openai` — settled
+  # 2026-08-05. One key, one bill, and the direct OpenAI account is out of
+  # credits anyway (it 429s at CALL time, i.e. halfway through a run, not at
+  # startup). What matters for the loop is only that this is a third vendor's
+  # model: it must not share a family with the writer or the critic.
   hint_solver:
     provider: openrouter
     model: openai/gpt-4o-mini
@@ -46,8 +48,8 @@ agents:
     output: json
 
   difficulty_monitor:
-    provider: openai             # cheap model for high-volume scoring
-    model: gpt-4o-mini
+    provider: openrouter         # cheap model for high-volume scoring
+    model: openai/gpt-4o-mini    # via OpenRouter, per the note above
     temperature: 0.2
     max_tokens: 300
     skill: difficulty_tuning
@@ -65,8 +67,8 @@ agents:
       model: claude-opus-4-8       # rejects temperature — omit it
       max_tokens: 3000
 
-  # NOTE: trend_researcher is still a single-pass agent. Porting it onto the
-  # same refinement loop is the next commit on this branch.
+  # NOTE: trend_researcher is still a single-pass agent — a backlog item, not
+  # an oversight (see the README roadmap).
   trend_researcher:
     provider: openrouter           # A/B winner: best Armenian wildcards, only
                                    # model that mines the Armenian YouTube feed

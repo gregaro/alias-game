@@ -204,7 +204,15 @@ at `http://<pi-ip>:8080`, 1920×1080, layered above the host video.
 - [x] Full episode rendered as one HeyGen video, with inline pause markers
 - [x] Question advancement automated in sync with the video (`timeline.json`)
 - [x] Dress rehearsal on an unlisted stream
+- [x] Hint generation as a real agent loop: writer / blind solver / critic,
+      3 rounds, best-candidate fallback (`code/agents/refine.py`)
 - [ ] First public episode
+- [ ] **Word generation (stage 1) as an agent loop too** — `research_words.py`
+      is still a single pass. It plugs a second spec into the same
+      `refine.py` engine; the open question is what replaces the blind
+      solver as its measured signal (playability of a word is not the same
+      question as guessability of a hint). Deferred on purpose: prove the
+      loop on hints across a real show first.
 - [ ] Feed live solve stats back into hint difficulty (difficulty_monitor)
 
 *Built as a scrappy solo project — simple, debuggable code over abstraction,

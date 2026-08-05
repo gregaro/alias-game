@@ -396,9 +396,14 @@ in `agents/config.yaml`.
 **Agents are being made real agents** (branch
 `worktree-agent-refinement-loop`). Stage 2 (hints) now runs the refinement
 loop above and is validated on real single-word runs; a full 10-word run has
-not been done yet. Stage 1 (`research_words.py`) is still a single pass —
-porting it onto the same engine is the next step, and is the test of whether
-`refine.py`'s split holds for a differently-shaped role.
+not been done yet. Stage 1 (`research_words.py`) is still a single pass — a
+backlog item (see the README roadmap), deliberately deferred until the loop
+has proven itself on hints across a real show.
+
+**All OpenAI models go through OpenRouter** (`provider: openrouter`, slug
+`openai/...`), never `provider: openai`. One key, one bill — and the direct
+account 429s at call time, which surfaces halfway through a run rather than
+at startup.
 
 ## Open decisions
 
