@@ -36,6 +36,15 @@ situations and the game itself, never the viewers or real people.
 - Natural, fluent Eastern Armenian throughout; colloquial forms welcome.
 - lead_ins must never leak anything about their word.
 - Each reveal must contain its word exactly once, stated clearly.
+- Decline the answer word naturally — do NOT paste it in dictionary form.
+  When the word comes BEFORE the copula it takes the definite article, and
+  because «է»/«էր» begin with a vowel that article is «ն», never «ը»:
+      «Բառը լվացքն էր։»   «Դա խաղողն էր։»   «Սա Սևանն էր։»
+  NOT «Բառը լվացք էր։»  «Դա խաղող էր։»
+  When the word comes AFTER the copula, the bare form is correct and must
+  be left alone: «Ճիշտ պատասխանն է գոմ։»  «Պատասխանն էր դերձակ։»
+  Same for other cases the sentence calls for («տրակտորի», «գոմում») — the
+  line must read as fluent speech, not as a citation of a dictionary entry.
 - Keep every line SHORT — this is spoken TTS text, not an essay.
 - No emoji, no stage directions, no formatting inside the strings — pure
   speakable text only.
