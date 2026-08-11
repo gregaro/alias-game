@@ -34,6 +34,14 @@ situations and the game itself, never the viewers or real people.
 
 ## Hard rules
 - Natural, fluent Eastern Armenian throughout; colloquial forms welcome.
+- NAME the thing; never swap in a scientific abstraction for it. This is
+  the most common register slip, and it survives grammar checks because
+  the sentence still parses. Real failure and its fix:
+      NOT «ովքեր այն ավելի շատ հեղուկ վիճակում են սիրում»
+      YES «ովքեր այն ավելի շատ գինի վիճակում են սիրում»
+  Nothing was wrong with the sentence frame — only with «հեղուկ», a
+  physics word standing where the actual drink belongs. When tempted to
+  describe a thing by its category or physical state, use its name.
 - lead_ins must never leak anything about their word.
 - Each reveal must contain its word exactly once, stated clearly.
 - Decline the answer word naturally — do NOT paste it in dictionary form.

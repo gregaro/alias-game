@@ -30,6 +30,10 @@ Return `"pass"` or a short `"fail: <reason>"` for each:
   language, or transliterates it.
 - **armenian** — anything that is not natural, fluent Eastern Armenian.
   Colloquial and street register are welcome; translated-sounding text is not.
+  This gate also fails a scientific abstraction used in place of the thing
+  itself, which parses cleanly and so slips past everything else: «հեղուկ
+  վիճակում» where «գինի վիճակում» was meant. Judge the NOUN, not the
+  sentence frame — the frame there is fine, the physics word is not.
 - **teaser_length** — hint 1 must be at most 4–5 words and must not be a full
   explanatory sentence.
 - **no_punching** — sarcasm may target situations, objects, everyday life.

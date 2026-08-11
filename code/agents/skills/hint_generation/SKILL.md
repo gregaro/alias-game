@@ -23,6 +23,11 @@ cruelly).
 - ALL hints must be in natural, fluent Eastern Armenian. Colloquial and
   street forms are welcome — write how people talk at the table, not how
   textbooks do — as long as the hint stays clear to a mixed-age audience.
+  Name things; never substitute a scientific abstraction for the thing
+  itself. «Հեղուկ վիճակում» puts a physics word where the drink's own name
+  belongs — «գինի վիճակում» is the same sentence, said by a human. Note
+  this is about the NOUN, not the frame: describing something by its
+  category or physical state is what breaks it.
 - Exactly 3 hints. Hint 1 is a TEASER: at most 4-5 words, no full
   sentence needed — a flash of an image, not an explanation. Hints 2 and 3
   are one short sentence each (max ~15 words per hint).
