@@ -28,16 +28,16 @@
     "Run generate_questions.py first: it fills in the word list here."
   ],
   "windows": [
-    {"word": "բարձ", "start": null, "teaser": null, "hint": null},
-    {"word": "խաղող", "start": null, "teaser": null, "hint": null},
+    {"word": "Վարսավիր", "start": null, "teaser": null, "hint": null},
+    {"word": "Տրակտոր", "start": null, "teaser": null, "hint": null},
     {"word": "Սևան", "start": null, "teaser": null, "hint": null},
-    {"word": "դերձակ", "start": null, "teaser": null, "hint": null},
-    {"word": "եղանակ", "start": null, "teaser": null, "hint": null},
-    {"word": "կորցնել", "start": null, "teaser": null, "hint": null},
-    {"word": "տրակտոր", "start": null, "teaser": null, "hint": null},
-    {"word": "գոմ", "start": null, "teaser": null, "hint": null},
-    {"word": "լվացք", "start": null, "teaser": null, "hint": null},
-    {"word": "թթու", "start": null, "teaser": null, "hint": null}
+    {"word": "Քեռի", "start": null, "teaser": null, "hint": null},
+    {"word": "Խաղող", "start": null, "teaser": null, "hint": null},
+    {"word": "Հարրի Փոթեր", "start": null, "teaser": null, "hint": null},
+    {"word": "Սառնարան", "start": null, "teaser": null, "hint": null},
+    {"word": "Հորանջել", "start": null, "teaser": null, "hint": null},
+    {"word": "Ղեկ", "start": null, "teaser": null, "hint": null},
+    {"word": "Վերելակ", "start": null, "teaser": null, "hint": null}
   ],
   "outro_start": null,
   "outro_end": null
