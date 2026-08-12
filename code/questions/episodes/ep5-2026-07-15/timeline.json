@@ -28,17 +28,17 @@
     "Run generate_questions.py first: it fills in the word list here."
   ],
   "windows": [
-    {"word": "Յութուբ", "start": null, "teaser": null, "hint": null},
-    {"word": "Խուտուտ տալ", "start": null, "teaser": null, "hint": null},
-    {"word": "Տոնածառ", "start": null, "teaser": null, "hint": null},
-    {"word": "Քավոր", "start": null, "teaser": null, "hint": null},
-    {"word": "Թթու", "start": null, "teaser": null, "hint": null},
-    {"word": "Սիֆոն", "start": null, "teaser": null, "hint": null},
-    {"word": "Բժիշկ", "start": null, "teaser": null, "hint": null},
-    {"word": "Կրոկոդիլ Գենա", "start": null, "teaser": null, "hint": null},
-    {"word": "Սարդ-մարդ", "start": null, "teaser": null, "hint": null},
-    {"word": "Մունդիալ", "start": null, "teaser": null, "hint": null}
+    {"word": "Յութուբ", "start": 24, "teaser": 24, "hint": 31},
+    {"word": "Խուտուտ տալ", "start": 46, "teaser": "1:00", "hint": "1:07"},
+    {"word": "Տոնածառ", "start": "1:24", "teaser": "1:36", "hint": "1:43"},
+    {"word": "Քավոր", "start": "1:57", "teaser": "2:09", "hint": "2:17"},
+    {"word": "Թթու", "start": "2:32", "teaser": "2:44", "hint": "2:52"},
+    {"word": "Սիֆոն", "start": "3:07", "teaser": "3:20", "hint": "3:27"},
+    {"word": "Բժիշկ", "start": "3:43", "teaser": "3:55", "hint": "4:03"},
+    {"word": "Կրոկոդիլ Գենա", "start": "4:18", "teaser": "4:32", "hint": "4:40"},
+    {"word": "Սարդ-մարդ", "start": "4:53", "teaser": "5:07", "hint": "5:15"},
+    {"word": "Մունդիալ", "start": "5:30", "teaser": "5:43", "hint": "5:51"}
   ],
-  "outro_start": null,
-  "outro_end": null
+  "outro_start": "6:08",
+  "outro_end": "6:33"
 }
