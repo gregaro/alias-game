@@ -117,6 +117,15 @@ def write_state(state: dict):
     os.replace(tmp, STATE_FILE)
 
 
+def read_state() -> dict:
+    """Read the overlay state without making chat polling depend on it."""
+    try:
+        with open(STATE_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
 def load_questions() -> dict:
     with open(QUESTIONS_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -305,6 +314,7 @@ class Scorer:
 
         self.page_token = None
         self.running = True
+        self._warmup_last = {}      # channelId -> last on-screen message time
 
     # ----- rehearsal timing report -----
 
@@ -419,6 +429,20 @@ class Scorer:
 
         if not text or not cid:
             return
+
+        # While the countdown card is active, echo a small, rate-limited slice
+        # of live chat onto the waiting screen. This is display-only: it never
+        # changes scores, and textContent in the overlay renders it as plain
+        # text rather than executable markup.
+        state = read_state()
+        if state.get("phase") == "starting":
+            now = time.time()
+            if now - self._warmup_last.get(cid, 0) >= 8:
+                self._warmup_last[cid] = now
+                messages = state.get("warmup_messages", [])[-2:]
+                messages.append({"name": name[:40], "text": text[:120]})
+                state["warmup_messages"] = messages
+                write_state(state)
 
         # The send time, not the poll time: polling lags by seconds and would
         # smear every measurement below.
@@ -808,8 +832,10 @@ def main():
     scorer = Scorer(service, chat_id, config, log=log)
     scorer._total = len(questions)
 
-    # Show an empty board right away.
-    scorer.publish_state(question=None, window_ends_at=None, phase="idle")
+    # Show an empty board right away, unless the operator already started the
+    # pre-show card. Starting the scorer after /start must not erase that card.
+    if read_state().get("phase") != "starting":
+        scorer.publish_state(question=None, window_ends_at=None, phase="idle")
 
     poller = threading.Thread(target=scorer.poll_loop, daemon=True)
     poller.start()

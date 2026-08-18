@@ -255,6 +255,231 @@
     75% { transform: translateX(2px); }
   }
 
+  /* ---------- Start card (before the show) ---------- */
+  /* NOT transparent, same reasoning as the end card below: before the host
+     video rolls there is nothing else behind this frame. Reuses the end
+     card's gradient treatment so pre-show and post-show read as one product,
+     mirrored instead of redesigned. */
+  .startcard-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 640px at 50% 40%, rgba(255, 194, 61, 0.10), transparent 60%),
+      radial-gradient(ellipse at 50% 50%, rgba(36, 24, 54, 0.94), rgba(8, 9, 13, 0.985) 72%);
+    background-size: 115% 115%, 100% 100%;
+    background-position: 46% 38%, center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 1.1s ease;
+    overflow: hidden;
+  }
+  .startcard-bg.show {
+    opacity: 1;
+    animation: start-bg-breathe 24s ease-in-out infinite alternate;
+  }
+  /* A quiet moving grid gives the waiting screen depth without competing
+     with the clock. It only animates while the start phase is visible. */
+  .startcard-bg::after {
+    content: "";
+    position: absolute;
+    inset: -80px;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 80px 80px;
+    -webkit-mask-image: radial-gradient(ellipse at center, black 10%, transparent 72%);
+    mask-image: radial-gradient(ellipse at center, black 10%, transparent 72%);
+    opacity: 0.7;
+  }
+  .startcard-bg.show::after { animation: start-grid-drift 18s linear infinite; }
+
+  .startcard-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(10px);
+    opacity: 0;
+    z-index: 6;
+    pointer-events: none;
+    will-change: transform;
+    transition: opacity 1.2s ease;
+  }
+  .startcard-orb.show { opacity: 0.34; }
+  .startcard-orb--gold {
+    width: 520px; height: 520px;
+    left: -110px; top: -120px;
+    background: radial-gradient(circle, rgba(255, 194, 61, 0.5), transparent 68%);
+  }
+  .startcard-orb--gold.show { animation: start-orb-gold 12s ease-in-out infinite alternate; }
+  .startcard-orb--green {
+    width: 620px; height: 620px;
+    right: -160px; bottom: -220px;
+    background: radial-gradient(circle, rgba(52, 224, 161, 0.32), transparent 68%);
+  }
+  .startcard-orb--green.show { animation: start-orb-green 15s ease-in-out infinite alternate; }
+  @keyframes start-grid-drift {
+    to { transform: translate(80px, 80px); }
+  }
+  @keyframes start-bg-breathe {
+    from { background-position: 44% 37%, center; filter: brightness(0.96); }
+    to { background-position: 56% 44%, center; filter: brightness(1.06); }
+  }
+  @keyframes start-orb-gold {
+    to { transform: translate(180px, 110px) scale(1.18); }
+  }
+  @keyframes start-orb-green {
+    to { transform: translate(-190px, -90px) scale(1.12); }
+  }
+
+  .startcard {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1200px;
+    text-align: center;
+    z-index: 45;
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(14px);
+    transition: opacity 1s ease 0.3s, transform 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+  }
+  .startcard.show { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+  .startcard__title {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: 46px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .startcard__clock {
+    margin-top: 22px;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: 190px;
+    line-height: 1;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 42px rgba(255, 194, 61, 0.12);
+  }
+  .startcard.show .startcard__clock:not(.zero) {
+    animation: start-clock-breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes start-clock-breathe {
+    0%, 100% { transform: scale(1); text-shadow: 0 0 42px rgba(255, 194, 61, 0.10); }
+    50% { transform: scale(1.018); text-shadow: 0 0 62px rgba(255, 194, 61, 0.22); }
+  }
+  /* Once the clock hits zero we hold on words, not "00:00" — a frozen zero
+     reads as broken, a message reads as intentional. */
+  .startcard__clock.zero {
+    font-size: 64px;
+    letter-spacing: 0.08em;
+    color: var(--leader);
+  }
+  .startcard__sub {
+    margin-top: 18px;
+    font-size: 30px;
+    color: var(--muted);
+  }
+  .startcard__signal {
+    height: 34px;
+    margin-top: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .startcard__signal span {
+    width: 6px;
+    height: 9px;
+    border-radius: 999px;
+    background: var(--gold);
+    opacity: 0.72;
+    transform-origin: center;
+  }
+  .startcard.show .startcard__signal span {
+    animation: start-signal 1.15s ease-in-out infinite alternate;
+  }
+  .startcard__signal span:nth-child(2) { animation-delay: -0.75s; }
+  .startcard__signal span:nth-child(3) { animation-delay: -0.35s; }
+  .startcard__signal span:nth-child(4) { animation-delay: -0.95s; }
+  .startcard__signal span:nth-child(5) { animation-delay: -0.55s; }
+  @keyframes start-signal {
+    to { height: 32px; background: var(--leader); opacity: 1; }
+  }
+  .startcard__sound {
+    display: none;
+    margin: 24px auto 0;
+    padding: 12px 22px;
+    border: 1px solid rgba(255, 194, 61, 0.42);
+    border-radius: 999px;
+    background: rgba(255, 194, 61, 0.10);
+    color: var(--gold);
+    font: 600 20px "Inter", system-ui, sans-serif;
+    cursor: pointer;
+  }
+  .startcard__sound.show { display: block; }
+  .warmup {
+    position: absolute;
+    left: 50%;
+    bottom: 74px;
+    width: 1400px;
+    z-index: 45;
+    opacity: 0;
+    transform: translate(-50%, 18px);
+    transition: opacity 0.8s ease 0.5s, transform 0.8s ease 0.5s;
+    pointer-events: none;
+  }
+  .warmup.show { opacity: 1; transform: translate(-50%, 0); }
+  .warmup__prompt {
+    margin-bottom: 18px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 25px;
+    font-weight: 500;
+  }
+  .warmup__prompt strong { color: var(--gold); font-weight: 600; }
+  .warmup__messages {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 14px;
+    min-height: 78px;
+  }
+  .warmup__message {
+    width: 420px;
+    min-width: 0;
+    padding: 14px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 16px;
+    background: rgba(14, 16, 24, 0.66);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(8px);
+    text-align: left;
+    animation: warmup-message-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .warmup__name {
+    color: var(--leader);
+    font-size: 17px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .warmup__text {
+    margin-top: 5px;
+    color: var(--text);
+    font-size: 21px;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  @keyframes warmup-message-in {
+    from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  }
+
   /* ---------- End card (after the outro) ---------- */
   /* NOT transparent, unlike everything above: once the host video finishes,
      this frame has nothing else behind it, so it needs its own background
@@ -328,6 +553,12 @@
     .row, .timer__fill, .board { transition: none; }
     .live__dot, .timer.low { animation: none; }
     .confetti-piece { animation: none; opacity: 0; }
+    .startcard-bg.show::after,
+    .startcard-bg.show,
+    .startcard-orb,
+    .startcard.show .startcard__clock,
+    .startcard.show .startcard__signal span { animation: none; }
+    .warmup__message { animation: none; }
   }
 
   /* ---------- Mobile (phone / direct browser view) ---------- */
@@ -374,10 +605,46 @@
     .endcard-text__thanks { font-size: 22px; }
     .endcard-text__sub { font-size: 14px; }
     .confetti-piece { width: 8px; height: 12px; }
+    .startcard { width: 92vw; }
+    .startcard__title { font-size: 18px; }
+    .startcard__clock { font-size: 64px; margin-top: 10px; }
+    .startcard__clock.zero { font-size: 26px; }
+    .startcard__sub { font-size: 14px; margin-top: 10px; }
+    .startcard__signal { margin-top: 16px; transform: scale(0.7); }
+    .startcard__sound { margin-top: 12px; padding: 8px 14px; font-size: 13px; }
+    .warmup { width: 92vw; bottom: 22px; }
+    .warmup__prompt { font-size: 13px; margin-bottom: 8px; }
+    .warmup__messages { gap: 6px; min-height: 46px; }
+    .warmup__message { width: 30%; padding: 7px 9px; border-radius: 8px; }
+    .warmup__name { font-size: 9px; }
+    .warmup__text { font-size: 10px; }
   }
 </style>
 </head>
 <body>
+  <audio id="startMusic" preload="auto" loop>
+    <source src="/music/StreamBeats%20by%20Harris%20Heller%20-%20Twinkle%20Tunes.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Start card: hidden until phase "starting". Sits below the board/qbar
+       in DOM order so it never intercepts anything during the show. -->
+  <div class="startcard-bg" id="startcardBg"></div>
+  <div class="startcard-orb startcard-orb--gold" id="startOrbGold"></div>
+  <div class="startcard-orb startcard-orb--green" id="startOrbGreen"></div>
+  <div class="startcard" id="startcard">
+    <div class="startcard__title">Շուտով կսկսվի</div>
+    <div class="startcard__clock" id="startClock">--:--</div>
+    <div class="startcard__sub">Պատրաստեք ձեր մատները</div>
+    <div class="startcard__signal" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <button class="startcard__sound" id="startSound" type="button">Միացնել ձայնը</button>
+  </div>
+  <div class="warmup" id="warmup">
+    <div class="warmup__prompt" id="warmupPrompt"></div>
+    <div class="warmup__messages" id="warmupMessages"></div>
+  </div>
+
   <!-- End card: hidden until phase "ended". Sits below the board/qbar in DOM
        order so it never intercepts anything during the show. -->
   <div class="endcard-bg" id="endcardBg"></div>
@@ -427,6 +694,136 @@
   // so it ticks smoothly between the once-a-second state polls.
   let windowEndsAt = null;
   let windowTotal = null; // seconds the window started with, for the ring fraction
+
+  // ---------- Start card ----------
+  const startcardBg = document.getElementById("startcardBg");
+  const startcard = document.getElementById("startcard");
+  const startClockEl = document.getElementById("startClock");
+  const startOrbs = [document.getElementById("startOrbGold"),
+                     document.getElementById("startOrbGreen")];
+  const startMusic = document.getElementById("startMusic");
+  const startSound = document.getElementById("startSound");
+  const warmup = document.getElementById("warmup");
+  const warmupPrompt = document.getElementById("warmupPrompt");
+  const warmupMessages = document.getElementById("warmupMessages");
+  const WARMUP_PROMPTS = [
+    "Գրեք չաթում՝ <strong>ո՞ր քաղաքից եք միացել</strong>",
+    "Գրեք չաթում՝ <strong>ո՞վ է այսօր հաղթելու</strong>",
+    "Գրեք չաթում՝ <strong>ո՞ւմ հետ եք խաղում</strong>"
+  ];
+  const START_MUSIC_VOLUME = 0.22;
+  let musicFadeTimer = null;
+  let warmupPromptIndex = 0;
+  let warmupSignature = "";
+  let starting = false;
+  let startsAt = null; // epoch seconds, from state.starts_at
+
+  async function playStartMusic() {
+    if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
+    startMusic.volume = START_MUSIC_VOLUME;
+    // OBS browser sources permit media playback. A normal browser may block
+    // autoplay until its page has received one click; offer a clear fallback.
+    try {
+      await startMusic.play();
+      startSound.classList.remove("show");
+    } catch (e) {
+      if (starting) startSound.classList.add("show");
+    }
+  }
+
+  startSound.addEventListener("click", playStartMusic);
+
+  function rotateWarmupPrompt() {
+    warmupPrompt.innerHTML = WARMUP_PROMPTS[warmupPromptIndex];
+    warmupPromptIndex = (warmupPromptIndex + 1) % WARMUP_PROMPTS.length;
+  }
+  rotateWarmupPrompt();
+  setInterval(rotateWarmupPrompt, 12000);
+
+  function renderWarmupMessages(messages) {
+    const latest = (messages || []).slice(-3);
+    const signature = JSON.stringify(latest);
+    if (signature === warmupSignature) return;
+    warmupSignature = signature;
+    warmupMessages.replaceChildren();
+    latest.forEach(message => {
+      const bubble = document.createElement("div");
+      bubble.className = "warmup__message";
+      const name = document.createElement("div");
+      name.className = "warmup__name";
+      name.textContent = message.name || "?";
+      const text = document.createElement("div");
+      text.className = "warmup__text";
+      text.textContent = message.text || "";
+      bubble.append(name, text);
+      warmupMessages.appendChild(bubble);
+    });
+  }
+
+  function fadeStartMusic() {
+    if (startMusic.paused) return;
+    if (musicFadeTimer) clearInterval(musicFadeTimer);
+    const steps = 20;
+    const decrement = startMusic.volume / steps;
+    musicFadeTimer = setInterval(() => {
+      startMusic.volume = Math.max(0, startMusic.volume - decrement);
+      if (startMusic.volume <= 0) {
+        clearInterval(musicFadeTimer);
+        musicFadeTimer = null;
+        startMusic.pause();
+        startMusic.currentTime = 0;
+        startMusic.volume = START_MUSIC_VOLUME;
+      }
+    }, 50);
+  }
+
+  function enterStartcard(sa) {
+    startsAt = sa || null;
+    if (starting) return;
+    starting = true;
+    boardEl.style.visibility = "hidden";
+    document.getElementById("qbar").classList.remove("show");
+    startcardBg.classList.add("show");
+    startOrbs.forEach(el => el.classList.add("show"));
+    startcard.classList.add("show");
+    warmup.classList.add("show");
+    playStartMusic();
+  }
+
+  function exitStartcard() {
+    if (!starting) return;
+    starting = false;
+    startsAt = null;
+    boardEl.style.visibility = "visible";
+    startcardBg.classList.remove("show");
+    startOrbs.forEach(el => el.classList.remove("show"));
+    startcard.classList.remove("show");
+    warmup.classList.remove("show");
+    startSound.classList.remove("show");
+    fadeStartMusic();
+  }
+
+  function formatClock(totalSeconds) {
+    const s = Math.max(0, Math.ceil(totalSeconds));
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return String(m).padStart(2, "0") + ":" + String(r).padStart(2, "0");
+  }
+
+  // Ticks locally off startsAt so the clock is smooth between 1s state polls,
+  // same trick as the answer-window ring.
+  function tickStartClock() {
+    if (!starting || startsAt === null) return;
+    const remaining = startsAt - (Date.now() / 1000);
+    if (remaining <= 0) {
+      startClockEl.textContent = "Սկսում ենք...";
+      startClockEl.classList.add("zero");
+    } else {
+      startClockEl.textContent = formatClock(remaining);
+      startClockEl.classList.remove("zero");
+    }
+  }
+  setInterval(tickStartClock, 250);
 
   // ---------- End card ----------
   const boardEl = document.querySelector(".board");
@@ -563,6 +960,8 @@
       const s = await res.json();
       renderLeaderboard(s.leaderboard);
       renderQuestion(s.question, s.phase);
+      if (s.phase === "starting") enterStartcard(s.starts_at); else exitStartcard();
+      renderWarmupMessages(s.phase === "starting" ? s.warmup_messages : []);
       if (s.phase === "ended") enterEndcard(); else exitEndcard();
 
       // Track when a new window starts so the ring knows its full duration.
