@@ -1,8 +1,13 @@
 """Safety tests for canonical pre-show chat responses."""
 
+import json
+import os
+import tempfile
 import unittest
+from unittest.mock import patch
 
-from chat_scorer import warmup_safe_response
+import chat_scorer
+from chat_scorer import Scorer, warmup_safe_response
 
 
 class WarmupFilterTests(unittest.TestCase):
@@ -28,6 +33,27 @@ class WarmupFilterTests(unittest.TestCase):
     def test_emoji_is_rebuilt_from_allowlist(self):
         self.assertEqual(warmup_safe_response("anything 🔥 anything"), "🔥")
         self.assertIsNone(warmup_safe_response("anything 😈 anything"))
+
+
+class ShowStartTests(unittest.TestCase):
+    def test_begin_show_clears_countdown_state_immediately(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state_file = os.path.join(directory, "state.json")
+            with open(state_file, "w", encoding="utf-8") as f:
+                json.dump({"phase": "starting", "starts_at": 12345,
+                           "warmup_messages": [{"safe": True, "text": "🔥"}]}, f)
+
+            scorer = Scorer(None, None, {})
+            with patch.object(chat_scorer, "STATE_FILE", state_file):
+                scorer.begin_show()
+                with open(state_file, encoding="utf-8") as f:
+                    state = json.load(f)
+
+            self.assertEqual(state["phase"], "idle")
+            self.assertIsNone(state["question"])
+            self.assertIsNone(state["window_ends_at"])
+            self.assertNotIn("starts_at", state)
+            self.assertNotIn("warmup_messages", state)
 
 
 if __name__ == "__main__":

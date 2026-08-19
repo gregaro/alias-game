@@ -438,6 +438,13 @@ class Scorer:
             "leaderboard": self.leaderboard(),
         })
 
+    def begin_show(self):
+        """Leave the pre-show card as soon as the video sync press happens."""
+        with self.lock:
+            self._q = None
+            self._ends = None
+            self.publish_state(question=None, window_ends_at=None, phase="idle")
+
     # ----- points for the next correct answer (speed decay) -----
 
     def next_points(self):
@@ -528,17 +535,21 @@ class Scorer:
 
         # During the countdown, show only reviewed canonical responses. Never
         # put arbitrary text or the viewer's username into overlay state.
-        state = read_state()
-        if state.get("phase") == "starting":
-            now = time.time()
-            safe_response = warmup_safe_response(text)
-            if (safe_response is not None
-                    and now - self._warmup_last.get(cid, 0) >= 8):
-                self._warmup_last[cid] = now
-                messages = state.get("warmup_messages", [])[-2:]
-                messages.append({"safe": True, "text": safe_response})
-                state["warmup_messages"] = messages
-                write_state(state)
+        # Serialize this read/modify/write with begin_show(), otherwise a chat
+        # message arriving on the sync press could restore stale `starting`
+        # state after the show has begun.
+        with self.lock:
+            state = read_state()
+            if state.get("phase") == "starting":
+                now = time.time()
+                safe_response = warmup_safe_response(text)
+                if (safe_response is not None
+                        and now - self._warmup_last.get(cid, 0) >= 8):
+                    self._warmup_last[cid] = now
+                    messages = state.get("warmup_messages", [])[-2:]
+                    messages.append({"safe": True, "text": safe_response})
+                    state["warmup_messages"] = messages
+                    write_state(state)
 
         # The send time, not the poll time: polling lags by seconds and would
         # smear every measurement below.
@@ -954,6 +965,9 @@ def main():
 
     input("\nPress Enter the moment the video starts to sync the show  >  ")
     t0 = time.time()
+    # Stop the countdown and fade its music immediately. Timeline mode may have
+    # a long intro before Q1, so waiting for the first display event is too late.
+    scorer.begin_show()
     # Anchor every later row to the video, so a row can be replayed against the
     # rendered clip: video_t is seconds from this press.
     log.t0 = t0
