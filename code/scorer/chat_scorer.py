@@ -108,6 +108,20 @@ WARMUP_LOCATIONS = {
     for alias, canonical in _WARMUP_LOCATION_ALIASES.items()
 }
 
+# Friendly, deliberately non-identifying labels for countdown chat bubbles.
+# They are assigned in arrival order and live only for this scorer run; the
+# leaderboard continues to use the viewer's real YouTube display name.
+WARMUP_ALIASES = (
+    "Կապույտ Աղվես",
+    "Ոսկեգույն Արծիվ",
+    "Կանաչ Առյուծ",
+    "Մանուշակագույն Բու",
+    "Արծաթագույն Գայլ",
+    "Նարնջագույն Վագր",
+    "Փիրուզագույն Դելֆին",
+    "Կարմիր Պանդա",
+)
+
 
 def warmup_safe_response(text: str) -> str | None:
     """Return reviewed display text, or None when input is not allowlisted."""
@@ -376,6 +390,7 @@ class Scorer:
         self.page_token = None
         self.running = True
         self._warmup_last = {}      # channelId -> last on-screen message time
+        self._warmup_aliases = {}   # channelId -> run-local anonymous label
 
     # ----- rehearsal timing report -----
 
@@ -444,6 +459,17 @@ class Scorer:
             self._q = None
             self._ends = None
             self.publish_state(question=None, window_ends_at=None, phase="idle")
+
+    def warmup_alias(self, channel_id):
+        """Return a stable, run-local alias without exposing the channel name."""
+        if channel_id not in self._warmup_aliases:
+            number = len(self._warmup_aliases)
+            if number < len(WARMUP_ALIASES):
+                alias = WARMUP_ALIASES[number]
+            else:
+                alias = f"Մասնակից {number + 1}"
+            self._warmup_aliases[channel_id] = alias
+        return self._warmup_aliases[channel_id]
 
     # ----- points for the next correct answer (speed decay) -----
 
@@ -547,7 +573,11 @@ class Scorer:
                         and now - self._warmup_last.get(cid, 0) >= 8):
                     self._warmup_last[cid] = now
                     messages = state.get("warmup_messages", [])[-2:]
-                    messages.append({"safe": True, "text": safe_response})
+                    messages.append({
+                        "safe": True,
+                        "name": self.warmup_alias(cid),
+                        "text": safe_response,
+                    })
                     state["warmup_messages"] = messages
                     write_state(state)
 

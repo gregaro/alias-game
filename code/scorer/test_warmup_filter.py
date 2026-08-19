@@ -34,6 +34,37 @@ class WarmupFilterTests(unittest.TestCase):
         self.assertEqual(warmup_safe_response("anything 🔥 anything"), "🔥")
         self.assertIsNone(warmup_safe_response("anything 😈 anything"))
 
+    def test_pre_show_alias_is_stable_and_does_not_use_display_name(self):
+        scorer = Scorer(None, None, {})
+        first = scorer.warmup_alias("channel-1")
+
+        self.assertEqual(first, scorer.warmup_alias("channel-1"))
+        self.assertNotEqual(first, scorer.warmup_alias("channel-2"))
+        self.assertNotIn("channel-1", first)
+
+    def test_pre_show_state_contains_alias_but_not_youtube_name(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state_file = os.path.join(directory, "state.json")
+            with open(state_file, "w", encoding="utf-8") as f:
+                json.dump({"phase": "starting", "warmup_messages": []}, f)
+
+            scorer = Scorer(None, None, {})
+            item = {
+                "snippet": {"displayMessage": "պատրաստ"},
+                "authorDetails": {
+                    "channelId": "private-channel",
+                    "displayName": "Real YouTube Name",
+                },
+            }
+            with patch.object(chat_scorer, "STATE_FILE", state_file):
+                scorer.handle_message(item)
+                with open(state_file, encoding="utf-8") as f:
+                    message = json.load(f)["warmup_messages"][0]
+
+            self.assertTrue(message["safe"])
+            self.assertEqual(message["name"], "Կապույտ Աղվես")
+            self.assertNotIn("Real YouTube Name", json.dumps(message))
+
 
 class ShowStartTests(unittest.TestCase):
     def test_begin_show_clears_countdown_state_immediately(self):

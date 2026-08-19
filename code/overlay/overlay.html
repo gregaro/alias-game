@@ -753,7 +753,7 @@
       bubble.className = "warmup__message";
       const name = document.createElement("div");
       name.className = "warmup__name";
-      name.textContent = "Մասնակից";
+      name.textContent = message.name || "Մասնակից";
       const text = document.createElement("div");
       text.className = "warmup__text";
       text.textContent = message.text || "";
