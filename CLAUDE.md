@@ -137,8 +137,8 @@ code/
 │       └── show_script.txt / .json / _tts.txt  Clip script; _tts.txt is the
 │                           one you paste into HeyGen.
 ├── scorer/
-│   ├── chat_scorer.py  Finds the active broadcast's liveChatId, polls
-│   │                   liveChatMessages.list, scores answers, writes
+│   ├── chat_scorer.py  Finds the active broadcast's liveChatId, consumes
+│   │                   gRPC streamList (REST polling fallback), scores, writes
 │   │                   ../overlay/state.json. You press Enter ONCE, the
 │   │                   moment the video starts, and it replays timeline.json
 │   │                   from there (FIXED-mode fallback if that file is

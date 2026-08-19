@@ -45,7 +45,7 @@ an LLM or TTS during the broadcast.
    BEFORE THE SHOW (content pipeline)              DURING THE SHOW (live loop)
 ┌──────────────────────────────────────┐   ┌────────────────────────────────────────┐
 │ trends (Google Trends AM/US,         │   │  YouTube Live Chat                     │
-│  hy-Wikipedia top reads,             │   │        │ liveChatMessages.list         │
+│  hy-Wikipedia top reads,             │   │        │ streamList (gRPC push)        │
 │  YouTube trending AM)                │   │        ▼                               │
 │        │                             │   │  chat_scorer.py ── normalize.py        │
 │        ▼                             │   │  (answer windows, speed decay,         │
@@ -137,8 +137,10 @@ never contain its target word) and a human read before TTS recording.
 
 ## The live scorer
 
-`code/scorer/chat_scorer.py` finds the active broadcast's live chat, polls it at the
-API-suggested interval, and scores answers while a question's window is open:
+`code/scorer/chat_scorer.py` finds the active broadcast's live chat, receives messages
+through YouTube's low-quota gRPC `streamList`, and scores answers while a question's
+window is open. If streaming is unavailable after retries, it falls back to REST
+polling at YouTube's requested interval:
 
 - **Armenian-aware matching** (`normalize.py`): NFC normalization, case folding, and
   correct handling of Armenian punctuation that sits *inside* words — the question mark
@@ -174,7 +176,7 @@ code/
 │                (points decay, questions, curated answers), timeline.json
 │                (second-marks measured off that episode's video) and show script:
 │                show_script.txt (human reference), .json, _tts.txt (paste into HeyGen)
-├── scorer/      YouTube auth (OAuth + token cache), chat poller/scorer, Armenian
+├── scorer/      YouTube auth, streaming chat/scorer with REST fallback, Armenian
 │                answer normalization
 └── secrets/     gitignored: OAuth client + cached token
 ```

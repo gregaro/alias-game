@@ -44,7 +44,7 @@ import time
 import threading
 from datetime import datetime, timedelta, timezone
 
-from youtube_auth import get_service
+from youtube_auth import get_access_token, get_credentials, get_service
 from normalize import matches
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -277,10 +277,11 @@ def load_hint_marks(rows: list[dict], bounds: list[float]):
 # ------------------------------- the scorer -------------------------------
 
 class Scorer:
-    def __init__(self, service, liveChatId, config, log=None):
+    def __init__(self, service, liveChatId, config, log=None, credentials=None):
         self.service = service
         self.liveChatId = liveChatId
         self.log = log
+        self.credentials = credentials
         self.window_seconds = config.get("window_seconds", 25)
         self.points = config.get("points", [10, 8, 7, 6, 5, 4, 3, 2])
         self.min_points = config.get("min_points", 1)
@@ -385,19 +386,22 @@ class Scorer:
 
     # ----- background polling -----
 
-    def poll_loop(self):
-        """Continuously pull chat. Score only while a window is open, and only
-        messages published after the window opened (so backlog never scores)."""
+    def _prime_page_token(self):
+        """Skip chat history and return the cursor where this run begins."""
         # Prime the page token to skip pre-existing history.
         try:
             first = self.service.liveChatMessages().list(
                 liveChatId=self.liveChatId, part="id").execute()
             self.page_token = first.get("nextPageToken")
-            interval = first.get("pollingIntervalMillis", 2000) / 1000.0
+            return first.get("pollingIntervalMillis", 2000) / 1000.0
         except Exception as e:
             print(f"\n[poll] could not start: {e}")
             self.running = False
-            return
+            return None
+
+    def _rest_poll_loop(self, interval):
+        """Proven REST fallback. Honor YouTube's requested polling interval."""
+        print(f"Chat transport: REST polling (currently {interval:.1f}s)")
 
         while self.running:
             try:
@@ -418,6 +422,38 @@ class Scorer:
                 self.handle_message(item)
 
             time.sleep(interval)
+
+    def poll_loop(self):
+        """Receive chat by gRPC streamList, falling back to REST when needed.
+
+        Both transports feed the same handle_message path, so scoring, logs and
+        backlog protection remain transport-independent.
+        """
+        interval = self._prime_page_token()
+        if interval is None:
+            return
+
+        if self.credentials is not None:
+            try:
+                import chat_stream
+                print("Chat transport: gRPC streamList")
+                if self.log:
+                    self.log.write("chat_transport", mode="streamList")
+                completed = chat_stream.consume(
+                    self,
+                    lambda: get_access_token(self.credentials),
+                    page_token=self.page_token,
+                )
+                if completed or not self.running:
+                    return
+                print("[stream] unavailable after retries; falling back to REST")
+            except (ImportError, OSError, RuntimeError) as e:
+                print(f"[stream] unavailable ({e}); falling back to REST")
+
+        if self.log:
+            self.log.write("chat_transport", mode="rest",
+                           polling_interval=interval)
+        self._rest_poll_loop(interval)
 
     def handle_message(self, item):
         snippet = item.get("snippet", {})
@@ -813,7 +849,8 @@ def main():
     questions = config["questions"]
 
     print("Authenticating with YouTube ...")
-    service = get_service()
+    credentials = get_credentials()
+    service = get_service(credentials)
 
     print("Finding your active broadcast ...")
     chat_id = find_live_chat_id(service)
@@ -829,7 +866,7 @@ def main():
     log = EventLog(os.path.join(LOG_DIR, name, f"{stamp}.jsonl"))
     print(f"Logging to: {log.path}")
 
-    scorer = Scorer(service, chat_id, config, log=log)
+    scorer = Scorer(service, chat_id, config, log=log, credentials=credentials)
     scorer._total = len(questions)
 
     # Show an empty board right away, unless the operator already started the

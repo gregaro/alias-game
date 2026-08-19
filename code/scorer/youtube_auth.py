@@ -52,9 +52,16 @@ def get_credentials():
     return creds
 
 
-def get_service():
+def get_service(credentials=None):
     """Return an authorized YouTube Data API v3 service object."""
-    return build("youtube", "v3", credentials=get_credentials())
+    return build("youtube", "v3", credentials=credentials or get_credentials())
+
+
+def get_access_token(credentials) -> str:
+    """Return a current OAuth token for non-REST clients such as gRPC."""
+    if not credentials.valid:
+        credentials.refresh(Request())
+    return credentials.token
 
 
 if __name__ == "__main__":

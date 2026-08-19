@@ -2,6 +2,8 @@
 flask
 google-api-python-client
 google-auth-oauthlib
+grpcio>=1.83.0
+protobuf>=7.35.1
 
 # Agents (code/agents/)
 pyyaml
