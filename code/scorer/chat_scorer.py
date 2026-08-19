@@ -7,8 +7,8 @@ How it works
 ------------
 - Authenticates with your existing youtube_auth.get_service().
 - Finds your active broadcast's liveChatId.
-- Runs a background thread that polls liveChatMessages.list at the interval the
-  API tells it to (pollingIntervalMillis).
+- Runs a background thread using low-quota gRPC streamList, with REST polling
+  as an automatic fallback.
 - You sync the show with ONE keypress: press Enter the moment the video starts.
   From there the scorer opens/closes each question's answer window on its own.
   While a window is open, correct answers score with speed decay (1st correct =
@@ -45,7 +45,7 @@ import threading
 from datetime import datetime, timedelta, timezone
 
 from youtube_auth import get_access_token, get_credentials, get_service
-from normalize import matches
+from normalize import matches, normalize
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))   # code/, for episode.py
@@ -71,6 +71,66 @@ ANSWER_HOLD_SECONDS = 5.0
 # silence after the hint in the render, NOT a longer window here (the window ends
 # where the host says the answer, and moving it lets chat copy him).
 LATE_GRACE_SECONDS = 20.0
+
+# The pre-show overlay must never repeat arbitrary viewer text or usernames.
+# Map recognized input fragments to output strings WE wrote and reviewed. A
+# message can contain anything around the fragment; only the canonical value
+# below reaches state.json. Keep this deliberately small and concrete.
+_WARMUP_LOCATION_ALIASES = {
+    "երևան": "Երևան", "երևանից": "Երևան",
+    "գյումրի": "Գյումրի", "գյումրիից": "Գյումրի",
+    "վանաձոր": "Վանաձոր", "վանաձորից": "Վանաձոր",
+    "էջմիածին": "Էջմիածին", "էջմիածնից": "Էջմիածին",
+    "աբովյան": "Աբովյան", "աբովյանից": "Աբովյան",
+    "հրազդան": "Հրազդան", "հրազդանից": "Հրազդան",
+    "կապան": "Կապան", "կապանից": "Կապան",
+    "գորիս": "Գորիս", "գորիսից": "Գորիս",
+    "դիլիջան": "Դիլիջան", "դիլիջանից": "Դիլիջան",
+    "իջևան": "Իջևան", "իջևանից": "Իջևան",
+    "սևան": "Սևան", "սևանից": "Սևան",
+    "արմավիր": "Արմավիր", "արմավիրից": "Արմավիր",
+    "արտաշատ": "Արտաշատ", "արտաշատից": "Արտաշատ",
+    "ջերմուկ": "Ջերմուկ", "ջերմուկից": "Ջերմուկ",
+    "ստեփանակերտ": "Ստեփանակերտ", "ստեփանակերտից": "Ստեփանակերտ",
+    "հայաստան": "Հայաստան", "հայաստանից": "Հայաստան",
+    "ամն": "ԱՄՆ", "usa": "ԱՄՆ",
+    "գլենդել": "Գլենդել", "glendale": "Գլենդել",
+    "լոս անջելես": "Լոս Անջելես", "los angeles": "Լոս Անջելես",
+    "մոսկվա": "Մոսկվա", "moscow": "Մոսկվա",
+    "փարիզ": "Փարիզ", "paris": "Փարիզ",
+    "լոնդոն": "Լոնդոն", "london": "Լոնդոն",
+    "բեռլին": "Բեռլին", "berlin": "Բեռլին",
+    "թբիլիսի": "Թբիլիսի", "tbilisi": "Թբիլիսի",
+    "կանադա": "Կանադա", "canada": "Կանադա",
+}
+WARMUP_LOCATIONS = {
+    normalize(alias): canonical
+    for alias, canonical in _WARMUP_LOCATION_ALIASES.items()
+}
+
+
+def warmup_safe_response(text: str) -> str | None:
+    """Return reviewed display text, or None when input is not allowlisted."""
+    cleaned = normalize(text)
+    padded = f" {cleaned} "
+
+    # Longest first so "Լոս Անջելես" wins before any future one-word alias.
+    for alias in sorted(WARMUP_LOCATIONS, key=len, reverse=True):
+        if f" {alias} " in padded:
+            return f"📍 {WARMUP_LOCATIONS[alias]}"
+
+    words = set(cleaned.split())
+    if words & {"պատրաստ", "պատրաստենք", "սկսենք", "ready"}:
+        return "Պատրաստ ենք 🔥"
+    if words & {"ոսկեգույն", "դեղին", "gold", "yellow"}:
+        return "🟡 Ոսկեգույն թիմ"
+    if words & {"կանաչ", "green"}:
+        return "🟢 Կանաչ թիմ"
+
+    for emoji in ("🔥", "👍", "👏", "❤️", "💛", "💚", "🟡", "🟢"):
+        if emoji in text:
+            return emoji
+    return None
 
 
 # ------------------------------ the event log ------------------------------
@@ -466,17 +526,17 @@ class Scorer:
         if not text or not cid:
             return
 
-        # While the countdown card is active, echo a small, rate-limited slice
-        # of live chat onto the waiting screen. This is display-only: it never
-        # changes scores, and textContent in the overlay renders it as plain
-        # text rather than executable markup.
+        # During the countdown, show only reviewed canonical responses. Never
+        # put arbitrary text or the viewer's username into overlay state.
         state = read_state()
         if state.get("phase") == "starting":
             now = time.time()
-            if now - self._warmup_last.get(cid, 0) >= 8:
+            safe_response = warmup_safe_response(text)
+            if (safe_response is not None
+                    and now - self._warmup_last.get(cid, 0) >= 8):
                 self._warmup_last[cid] = now
                 messages = state.get("warmup_messages", [])[-2:]
-                messages.append({"name": name[:40], "text": text[:120]})
+                messages.append({"safe": True, "text": safe_response})
                 state["warmup_messages"] = messages
                 write_state(state)
 

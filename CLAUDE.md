@@ -100,8 +100,11 @@ code/
 │   │                   state at /state, test controls at /timer/<seconds>
 │   │                   (and /timer/stop) and /end (and /end/stop). Reads
 │   │                   ../overlay/state.json.
-│   ├── overlay.html    Transparent overlay page (leaderboard, question
-│   │                   lower-third, countdown ring) plus an opaque end-card
+│   ├── overlay.html    OBS overlay: animated/music pre-show countdown with
+│   │                   STRICTLY ALLOWLISTED anonymous chat responses (raw
+│   │                   viewer text/usernames must never enter the frame),
+│   │                   leaderboard, question lower-third, countdown ring,
+│   │                   plus an opaque end-card
 │   │                   phase (leaderboard glides to center, confetti,
 │   │                   thank-you note) for after the show, so it isn't a
 │   │                   black frame once the host video ends. Polls /state

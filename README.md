@@ -167,8 +167,9 @@ assets/
 code/
 ├── agents/      config-driven LLM agents, skills (SKILL.md per role), SQLite state,
 │                trend fetchers, and the two per-show pipeline commands
-├── overlay/     Flask server + transparent 1920x1080 overlay page (leaderboard,
-│                question lower-third, countdown ring) polled by OBS
+├── overlay/     Flask server + 1920x1080 OBS overlay (animated pre-show card,
+│                allowlisted anonymous chat responses, leaderboard, question
+│                lower-third, countdown ring, and end card)
 ├── episode.py   episode path resolution — one folder per show, so old episodes
 │                stay runnable instead of being overwritten by the next one
 ├── questions/   current_episode (one line naming the active show) + episodes/

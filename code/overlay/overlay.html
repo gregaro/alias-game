@@ -708,8 +708,8 @@
   const warmupMessages = document.getElementById("warmupMessages");
   const WARMUP_PROMPTS = [
     "Գրեք չաթում՝ <strong>ո՞ր քաղաքից եք միացել</strong>",
-    "Գրեք չաթում՝ <strong>ո՞վ է այսօր հաղթելու</strong>",
-    "Գրեք չաթում՝ <strong>ո՞ւմ հետ եք խաղում</strong>"
+    "Պատրա՞ստ եք՝ գրեք <strong>«պատրաստ» կամ 🔥</strong>",
+    "Ընտրեք ձեր թիմը՝ <strong>🟡 թե՞ 🟢</strong>"
   ];
   const START_MUSIC_VOLUME = 0.22;
   let musicFadeTimer = null;
@@ -741,7 +741,9 @@
   setInterval(rotateWarmupPrompt, 12000);
 
   function renderWarmupMessages(messages) {
-    const latest = (messages || []).slice(-3);
+    // Defense in depth: old/raw state entries are ignored even if they remain
+    // on disk after an upgrade. Only scorer-canonicalized values carry `safe`.
+    const latest = (messages || []).filter(message => message.safe === true).slice(-3);
     const signature = JSON.stringify(latest);
     if (signature === warmupSignature) return;
     warmupSignature = signature;
@@ -751,7 +753,7 @@
       bubble.className = "warmup__message";
       const name = document.createElement("div");
       name.className = "warmup__name";
-      name.textContent = message.name || "?";
+      name.textContent = "Մասնակից";
       const text = document.createElement("div");
       text.className = "warmup__text";
       text.textContent = message.text || "";
