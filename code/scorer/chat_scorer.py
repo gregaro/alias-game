@@ -52,6 +52,11 @@ sys.path.insert(0, os.path.dirname(HERE))   # code/, for episode.py
 import episode
 
 STATE_FILE = os.path.join(HERE, "../overlay/state.json")
+# The control page (overlay/control.html) talks to the scorer through these two
+# files, never through state.json: that one is the overlay's picture of the show,
+# these are commands/telemetry. status = scorer -> page, sync = page -> scorer.
+STATUS_FILE = os.path.join(HERE, "../overlay/scorer_status.json")
+SYNC_FILE = os.path.join(HERE, "../overlay/sync.json")
 LOG_DIR = os.path.join(HERE, "../logs")   # gitignored: run artifacts, per episode
 
 # Set from the resolved episode in main(); the loaders read them. Every show's
@@ -198,6 +203,69 @@ def read_state() -> dict:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
+
+
+_status = {}
+_status_stop = threading.Event()
+
+
+def set_status(**fields):
+    """Merge fields into the telemetry file the control page reads. Atomic for
+    the same reason write_state is: the page polls it every second."""
+    _status.update(fields, updated=time.time(), pid=os.getpid())
+    tmp = STATUS_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(_status, f, ensure_ascii=False)
+    os.replace(tmp, STATUS_FILE)
+
+
+def _heartbeat():
+    """Re-stamp `updated` so the page can tell a live scorer from a dead one that
+    left a stale file behind."""
+    while not _status_stop.wait(1.0):
+        set_status()
+
+
+def wait_for_sync() -> float:
+    """Block until the video-start sync arrives; return t0 (epoch seconds).
+
+    Two ways in, either one works: Enter in this terminal, or the control page's
+    START button (which writes SYNC_FILE). Whichever comes first wins. A sync
+    file older than the moment we armed is a leftover and is ignored."""
+    armed_at = time.time()
+    try:
+        os.remove(SYNC_FILE)
+    except FileNotFoundError:
+        pass
+    got = threading.Event()
+    box = {}
+
+    def from_terminal():
+        try:
+            input("\nPress Enter the moment the video starts to sync the show "
+                  "(or press START on the control page)  >  ")
+        except EOFError:        # no tty (launched headless): the page is the only way
+            return
+        box["t0"] = time.time()
+        got.set()
+
+    threading.Thread(target=from_terminal, daemon=True).start()
+    set_status(status="armed")
+    while not got.wait(0.1):
+        try:
+            with open(SYNC_FILE, "r", encoding="utf-8") as f:
+                t0 = float(json.load(f)["t0"])
+        except (FileNotFoundError, ValueError, KeyError):
+            continue            # absent, or caught mid-write: look again
+        if t0 >= armed_at:
+            box["t0"] = t0
+            break
+        os.remove(SYNC_FILE)
+    try:
+        os.remove(SYNC_FILE)
+    except FileNotFoundError:
+        pass
+    return box["t0"]
 
 
 def load_questions() -> dict:
@@ -977,8 +1045,12 @@ def main():
 
     poller = threading.Thread(target=scorer.poll_loop, daemon=True)
     poller.start()
+    set_status(status="starting", episode=name, questions=len(questions), t0=None)
+    threading.Thread(target=_heartbeat, daemon=True).start()
 
     timeline = load_timeline(len(questions))
+    set_status(mode="TIMELINE" if timeline else "FIXED",
+               end_card_auto=bool(timeline and timeline["outro_end"] is not None))
     if timeline:
         print(f"\nTIMELINE mode: {len(questions)} windows measured from the video "
               f"(Q1 opens at {timeline['starts'][0]:.0f}s, last closes at "
@@ -993,8 +1065,8 @@ def main():
         print(f"\nFIXED mode: {scorer.window_seconds}s per window, back-to-back "
               "(no valid timeline.json).")
 
-    input("\nPress Enter the moment the video starts to sync the show  >  ")
-    t0 = time.time()
+    t0 = wait_for_sync()
+    set_status(status="running", t0=t0)
     # Stop the countdown and fade its music immediately. Timeline mode may have
     # a long intro before Q1, so waiting for the first display event is too late.
     scorer.begin_show()
@@ -1024,6 +1096,8 @@ def main():
         log.write("interrupted")
     finally:
         scorer.running = False
+        _status_stop.set()
+        set_status(status="done")
         board = scorer.leaderboard(top=100)
         log.write("show_end", leaderboard=board,
                   solves=len(scorer.solves), late=len(scorer.late))

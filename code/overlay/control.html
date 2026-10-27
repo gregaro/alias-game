@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Show Control</title>
+<style>
+  :root {
+    --bg: #14161a; --panel: #1f2329; --line: #333a44; --text: #e8eaed;
+    --dim: #8b94a1; --ok: #3ecf8e; --warn: #f5b942; --bad: #ef5b5b; --accent: #5b9cf5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text);
+         font: 15px/1.4 system-ui, sans-serif; max-width: 760px; margin-inline: auto; }
+  h1 { font-size: 18px; margin: 0 0 12px; display: flex; gap: 10px; align-items: center; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+       color: var(--dim); margin: 0 0 10px; font-weight: 600; }
+  section { background: var(--panel); border: 1px solid var(--line);
+            border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .pill { font-size: 12px; padding: 2px 10px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); }
+  .pill.ok { color: var(--ok); border-color: var(--ok); }
+  .pill.warn { color: var(--warn); border-color: var(--warn); }
+  .pill.bad { color: var(--bad); border-color: var(--bad); }
+  button, input { font: inherit; border-radius: 8px; border: 1px solid var(--line);
+                  background: #2a3038; color: var(--text); padding: 8px 14px; }
+  button { cursor: pointer; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  input { width: 110px; }
+  #start { width: 100%; padding: 22px; font-size: 22px; font-weight: 700;
+           background: var(--ok); color: #06210f; border: 0; }
+  #start:disabled { background: #2a3038; color: var(--dim); opacity: 1; }
+  .big { font-size: 28px; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .dim { color: var(--dim); font-size: 13px; }
+  pre { background: #0f1114; padding: 10px; border-radius: 8px; overflow-x: auto;
+        font-size: 12.5px; margin: 10px 0 0; white-space: pre-wrap; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 3px 0; } td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+           background: #000; border: 1px solid var(--line); padding: 8px 16px;
+           border-radius: 8px; display: none; }
+</style>
+</head>
+<body>
+<h1>Show Control <span id="conn" class="pill">connecting…</span></h1>
+
+<section>
+  <h2>1 · Check</h2>
+  <div class="row">
+    <button onclick="preflight(false)">Run preflight</button>
+    <button onclick="preflight(true)">Run preflight (I'm live)</button>
+    <span id="pfBadge" class="pill" hidden></span>
+  </div>
+  <pre id="pfOut" hidden></pre>
+</section>
+
+<section>
+  <h2>2 · Pre-show countdown</h2>
+  <div class="row">
+    <input id="cd" placeholder="5 or 7:30pm" aria-label="minutes or clock time">
+    <button onclick="startCountdown()">Start countdown</button>
+    <button onclick="hit('/start/stop')">Clear</button>
+  </div>
+  <p class="dim" style="margin:8px 0 0">Minutes (<code>5</code>) or a clock time (<code>7pm</code>, <code>19:00</code>).
+  Run it once you're live on YouTube, before the video rolls.</p>
+</section>
+
+<section>
+  <h2>3 · Start</h2>
+  <div class="row" style="margin-bottom:10px">
+    <span id="scorerPill" class="pill">scorer: …</span>
+    <span id="epPill" class="pill" hidden></span>
+    <span id="modePill" class="pill" hidden></span>
+    <span id="obsPill" class="pill" title="obs_sync.py: starts the show when OBS starts the clip"></span>
+  </div>
+  <button id="start" disabled onclick="sync()">START SHOW</button>
+  <p class="dim" style="margin:8px 0 0">With OBS sync ready, just play the clip in OBS — it syncs itself. Otherwise press this at the instant the video starts.</p>
+</section>
+
+<section>
+  <h2>4 · On air</h2>
+  <div class="row" style="justify-content:space-between">
+    <div><div class="dim">Video clock</div><div id="clock" class="big">–</div></div>
+    <div><div class="dim">Overlay phase</div><div id="phase" class="big">–</div></div>
+  </div>
+  <p id="now" class="dim" style="margin:8px 0"></p>
+  <div class="row">
+    <button onclick="hit('/end')">End card now</button>
+    <button onclick="hit('/end/stop')">Back to idle</button>
+    <button onclick="hit('/timer/10')">Test timer 10s</button>
+  </div>
+  <p id="endNote" class="dim" style="margin:8px 0 0"></p>
+</section>
+
+<section>
+  <h2>Leaderboard</h2>
+  <table id="board"><tr><td class="dim">empty</td></tr></table>
+</section>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let lastFail = 0;
+
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.style.display = 'block';
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.style.display = 'none', 2500);
+}
+
+async function hit(path) {
+  try {
+    const r = await fetch(path);
+    toast(r.ok ? 'OK ' + path : 'Failed ' + path + ' (' + r.status + ')');
+  } catch { toast('Server unreachable'); }
+  poll();
+}
+
+function startCountdown() {
+  const v = $('cd').value.trim();
+  if (v) hit('/start/' + encodeURIComponent(v));
+}
+
+async function sync() {
+  $('start').disabled = true;      // one press only: a double-click must not re-sync
+  try {
+    const r = await fetch('/api/sync', {method: 'POST'});
+    const j = await r.json();
+    toast(r.ok ? 'Synced — show running' : j.error);
+  } catch { toast('Server unreachable'); }
+  poll();
+}
+
+async function preflight(live) {
+  const out = $('pfOut'), badge = $('pfBadge');
+  out.hidden = false; out.textContent = 'Running…'; badge.hidden = true;
+  try {
+    const r = await fetch('/api/preflight' + (live ? '?live=1' : ''), {method: 'POST'});
+    const j = await r.json();
+    out.textContent = j.output;
+    badge.hidden = false;
+    badge.textContent = j.ok ? 'READY' : 'NOT READY';
+    badge.className = 'pill ' + (j.ok ? 'ok' : 'bad');
+  } catch { out.textContent = 'Server unreachable'; }
+}
+
+const fmt = s => {
+  s = Math.max(0, Math.floor(s));
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+};
+
+function render(d) {
+  const sc = d.scorer, st = d.state;
+  const skew = d.now - Date.now() / 1000;      // use the Pi's clock, not this device's
+
+  const scorerPill = $('scorerPill');
+  const label = !sc.online ? 'offline' : sc.status;
+  scorerPill.textContent = 'scorer: ' + label;
+  scorerPill.className = 'pill ' + (sc.online ? (sc.status === 'armed' ? 'ok' : 'warn') : 'bad');
+  $('epPill').hidden = !sc.online || !sc.episode;
+  $('epPill').textContent = sc.episode || '';
+  $('modePill').hidden = !sc.online || !sc.mode;
+  $('modePill').textContent = sc.mode ? sc.mode + ' mode' : '';
+  $('modePill').className = 'pill ' + (sc.mode === 'TIMELINE' ? 'ok' : 'bad');
+
+  const obs = d.obs, obsPill = $('obsPill');
+  obsPill.textContent = !obs ? 'OBS sync: off (use button)'
+    : obs.connected ? 'OBS sync: ready' : 'OBS sync: ' + obs.message;
+  obsPill.className = 'pill ' + (!obs ? '' : obs.connected ? 'ok' : 'bad');
+
+  const start = $('start');
+  start.disabled = !(sc.online && sc.status === 'armed');
+  start.textContent = !sc.online ? 'START SHOW — scorer not running'
+    : sc.status === 'armed' ? 'START SHOW'
+    : sc.status === 'running' ? 'SHOW RUNNING'
+    : 'START SHOW — scorer starting…';
+
+  $('clock').textContent = sc.online && sc.status === 'running' && sc.t0
+    ? fmt(Date.now() / 1000 + skew - sc.t0) : '–';
+  $('phase').textContent = st.phase || '–';
+  $('now').textContent = st.question
+    ? 'Q' + (st.question.number ?? '') + ': ' + (st.question.text || '').slice(0, 90) : '';
+  $('endNote').textContent = sc.online && sc.mode
+    ? (sc.end_card_auto ? 'End card fires automatically at outro_end.'
+                        : 'No outro_end mark: press "End card now" as the outro wraps up.') : '';
+
+  const lb = st.leaderboard || [];
+  $('board').innerHTML = lb.length
+    ? lb.map((r, i) => `<tr><td>${i + 1}. ${esc(r.name)}</td><td>${r.score}</td></tr>`).join('')
+    : '<tr><td class="dim">empty</td></tr>';
+}
+
+async function poll() {
+  try {
+    const r = await fetch('/api/status', {cache: 'no-store'});
+    render(await r.json());
+    $('conn').textContent = 'connected'; $('conn').className = 'pill ok';
+  } catch {
+    $('conn').textContent = 'server unreachable'; $('conn').className = 'pill bad';
+  }
+}
+poll(); setInterval(poll, 1000);
+</script>
+</body>
+</html>

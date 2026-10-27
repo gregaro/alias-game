@@ -7,3 +7,6 @@ alias_game.db
 code/testing/
 # Show logs: run artifacts, and they carry viewer names + channel IDs.
 code/logs/
+code/overlay/scorer_status.json
+code/overlay/sync.json
+code/overlay/obs_status.json

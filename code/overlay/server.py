@@ -20,6 +20,14 @@ Convenience for testing the countdown without doing epoch-time math by hand:
   GET /end              -> after-show end card (leaderboard to center, confetti).
   GET /end/stop         -> clears it, back to idle.
 
+The operator's control page (NEVER an OBS source):
+  GET /control          -> buttons for everything above, plus the START-SHOW sync
+                           that replaces pressing Enter in the scorer's terminal.
+  GET /api/status       -> overlay state + scorer telemetry, polled by that page.
+  POST /api/sync        -> "the video just started": hands the scorer its t0.
+                           (Anything can call this — e.g. an OBS hook later.)
+  POST /api/preflight   -> runs scorer/preflight.py and returns its output.
+
 Run:
     pip install flask
     python server.py
@@ -32,12 +40,19 @@ import math
 import time
 import os
 import re
+import subprocess
+import sys
 from datetime import datetime, timedelta
-from flask import Flask, Response, send_from_directory
+from flask import Flask, Response, jsonify, request, send_from_directory
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(HERE, "state.json")
 MUSIC_DIR = os.path.join(HERE, "..", "..", "assets", "music")
+STATUS_FILE = os.path.join(HERE, "scorer_status.json")   # scorer -> this server
+SYNC_FILE = os.path.join(HERE, "sync.json")               # this server -> scorer
+PREFLIGHT = os.path.join(HERE, "..", "scorer", "preflight.py")
+OBS_STATUS_FILE = os.path.join(HERE, "obs_status.json")   # obs_sync.py -> this server
+STATUS_FRESH_SECONDS = 5    # the scorer re-stamps every 1s; older means it's gone
 PORT = 8080
 
 app = Flask(__name__)
@@ -80,6 +95,72 @@ def state():
     # Never let the browser or OBS cache the state.
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     return resp
+
+
+def read_scorer():
+    """Scorer telemetry, or {"online": False}. The heartbeat is what separates a
+    live scorer from the stale file a crashed one leaves behind."""
+    try:
+        with open(STATUS_FILE, "r", encoding="utf-8") as f:
+            st = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"online": False}
+    st["online"] = (time.time() - st.get("updated", 0) < STATUS_FRESH_SECONDS
+                    and st.get("status") != "done")
+    return st
+
+
+def read_obs():
+    """OBS-sync telemetry, or None when obs_sync.py isn't running. 'connected'
+    only counts while its heartbeat is fresh, same rule as the scorer's."""
+    try:
+        with open(OBS_STATUS_FILE, "r", encoding="utf-8") as f:
+            st = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+    if time.time() - st.get("updated", 0) > STATUS_FRESH_SECONDS + 5:
+        return None         # check() can take a few seconds to time out
+    return st
+
+
+@app.route("/control")
+def control():
+    return send_from_directory(HERE, "control.html")
+
+
+@app.route("/api/status")
+def api_status():
+    resp = jsonify({"now": time.time(), "state": read_state(), "scorer": read_scorer(),
+                    "obs": read_obs()})
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
+@app.route("/api/sync", methods=["POST"])
+def api_sync():
+    """The video just started. Refused unless an armed scorer is waiting: a sync
+    that nobody is listening for would sit in the file and fire the NEXT run."""
+    sc = read_scorer()
+    if not sc["online"] or sc.get("status") != "armed":
+        return jsonify(error="scorer is not armed (start it, and wait for the "
+                             "sync prompt)"), 409
+    tmp = SYNC_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump({"t0": time.time()}, f)
+    os.replace(tmp, SYNC_FILE)
+    return jsonify(ok=True)
+
+
+@app.route("/api/preflight", methods=["POST"])
+def api_preflight():
+    cmd = [sys.executable, PREFLIGHT]
+    if request.args.get("live"):
+        cmd.append("--live")
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    except subprocess.TimeoutExpired:
+        return jsonify(ok=False, output="preflight timed out after 60s")
+    return jsonify(ok=r.returncode == 0, output=r.stdout + r.stderr)
 
 
 @app.route("/start/<value>")
