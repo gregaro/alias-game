@@ -10,3 +10,6 @@ pyyaml
 python-dotenv
 langchain-anthropic
 langchain-openai
+
+# OBS start-sync (code/scorer/obs_sync.py)
+obsws-python>=1.7
