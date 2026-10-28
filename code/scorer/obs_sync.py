@@ -18,6 +18,7 @@ It never decides anything: /api/sync refuses unless the scorer is armed, so a
 replayed or restarted clip can't re-sync a running show.
 """
 import json
+import logging
 import os
 import sys
 import time
@@ -26,6 +27,10 @@ import urllib.request
 
 import obsws_python as obs
 from dotenv import load_dotenv
+
+# The library logs a full traceback on every failed connect. We report failures
+# ourselves in one line, and retry every few seconds, so silence it.
+logging.getLogger("obsws_python").setLevel(logging.CRITICAL)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(HERE, "../../.env"))
