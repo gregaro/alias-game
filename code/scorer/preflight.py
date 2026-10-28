@@ -139,29 +139,17 @@ def check_video(path, tl):
 def check_auth():
     """Returns a YouTube service, or None. Never opens a browser flow: a preflight
     that hangs on a consent screen is worse than one that says 're-auth'."""
-    from google.auth.transport.requests import Request
-    from google.oauth2.credentials import Credentials
-    import youtube_auth as ya
-    if not os.path.exists(ya.TOKEN_FILE):
-        fail("no token.json — run: .venv/bin/python code/scorer/reauth.py")
+    import auth_check
+    res = auth_check.check()
+    if not res["ok"]:
+        fail(f"YouTube auth: {res['message']}")
         return None
-    try:
-        creds = Credentials.from_authorized_user_file(ya.TOKEN_FILE, ya.SCOPES)
-        if not creds.valid:
-            creds.refresh(Request())
-            with open(ya.TOKEN_FILE, "w") as f:
-                f.write(creds.to_json())
-        service = ya.get_service(creds)
-        me = service.channels().list(part="snippet", mine=True).execute()
-        title = me["items"][0]["snippet"]["title"]
-    except Exception as e:                       # expired/revoked/network: all mean "fix before the show"
-        fail(f"YouTube auth failed ({type(e).__name__}: {str(e)[:120]}) — run reauth.py")
-        return None
-    if title != PRODUCTION_CHANNEL:
-        fail(f"token controls channel {title!r}, expected {PRODUCTION_CHANNEL!r} — re-auth as barlylive@gmail.com")
-    else:
-        ok(f"authorized as {title}")
-    return service
+    ok(f"authorized as {res['channel']} (token {res['age_days']:.1f} days old"
+       f"{'' if res['age_known'] else ', age unknown'})")
+    warning = auth_check.age_warning(res)
+    if warning:
+        warn(warning)
+    return res["service"]
 
 
 def check_broadcast(service, need_live):

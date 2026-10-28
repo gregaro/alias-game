@@ -72,6 +72,7 @@
     <span id="scorerPill" class="pill">scorer: …</span>
     <span id="epPill" class="pill" hidden></span>
     <span id="modePill" class="pill" hidden></span>
+    <span id="authPill" class="pill" title="scorer/auth_check.py (daily cron)"></span>
     <span id="obsPill" class="pill" title="obs_sync.py: starts the show when OBS starts the clip"></span>
   </div>
   <button id="start" disabled onclick="sync()">START SHOW</button>
@@ -164,6 +165,17 @@ function render(d) {
   $('modePill').hidden = !sc.online || !sc.mode;
   $('modePill').textContent = sc.mode ? sc.mode + ' mode' : '';
   $('modePill').className = 'pill ' + (sc.mode === 'TIMELINE' ? 'ok' : 'bad');
+
+  const au = d.auth, authPill = $('authPill');
+  if (!au) { authPill.textContent = 'YouTube auth: never checked'; authPill.className = 'pill warn'; }
+  else {
+    const hrs = (d.now - au.checked_at) / 3600;
+    const ago = hrs < 1 ? 'just now' : hrs < 48 ? Math.round(hrs) + 'h ago' : Math.round(hrs / 24) + 'd ago';
+    authPill.textContent = !au.ok ? 'YouTube auth: BROKEN — re-auth'
+      : au.warning ? 'YouTube auth: token ageing — re-auth soon' : 'YouTube auth: ok (' + ago + ')';
+    authPill.title = au.message + (au.warning ? ' — ' + au.warning : '');
+    authPill.className = 'pill ' + (!au.ok ? 'bad' : (au.warning || hrs > 36) ? 'warn' : 'ok');
+  }
 
   const obs = d.obs, obsPill = $('obsPill');
   obsPill.textContent = !obs ? 'OBS sync: off (use button)'

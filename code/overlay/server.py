@@ -51,6 +51,7 @@ MUSIC_DIR = os.path.join(HERE, "..", "..", "assets", "music")
 STATUS_FILE = os.path.join(HERE, "scorer_status.json")   # scorer -> this server
 SYNC_FILE = os.path.join(HERE, "sync.json")               # this server -> scorer
 PREFLIGHT = os.path.join(HERE, "..", "scorer", "preflight.py")
+AUTH_STATUS_FILE = os.path.join(HERE, "auth_status.json")   # scorer/auth_check.py (cron) -> here
 OBS_STATUS_FILE = os.path.join(HERE, "obs_status.json")   # obs_sync.py -> this server
 STATUS_FRESH_SECONDS = 5    # the scorer re-stamps every 1s; older means it's gone
 PORT = 8080
@@ -123,6 +124,16 @@ def read_obs():
     return st
 
 
+def read_auth():
+    """Last auth_check result, or None if it has never run. Not time-limited:
+    the page shows how long ago it was checked, because a daily cron is the norm."""
+    try:
+        with open(AUTH_STATUS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+
 @app.route("/control")
 def control():
     return send_from_directory(HERE, "control.html")
@@ -131,7 +142,7 @@ def control():
 @app.route("/api/status")
 def api_status():
     resp = jsonify({"now": time.time(), "state": read_state(), "scorer": read_scorer(),
-                    "obs": read_obs()})
+                    "obs": read_obs(), "auth": read_auth()})
     resp.headers["Cache-Control"] = "no-store"
     return resp
 
