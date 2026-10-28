@@ -78,6 +78,15 @@ code/
 │   │                   _tts.txt — the paste-ready HeyGen sheet; its inline
 │   │                   [pause 4 seconds] markers show where to hand-add
 │   │                   the pause in AI Studio (HeyGen doesn't parse them).
+│   ├── measure_timeline.py  Stage five (no LLM): rendered video ->
+│   │                   timeline.json marks. ffmpeg silencedetect, no speech
+│   │                   recognition: the 2N longest gaps (pause + guess window
+│   │                   per word) cut the audio into blocks that map onto the
+│   │                   known script. hint/start/outro marks are exact; teaser
+│   │                   and window 1's start are estimates, flagged "?".
+│   │                   Prints a diff against the existing marks; --write
+│   │                   saves (--force to overwrite measured ones). Validated
+│   │                   on ep1-ep5: every hard mark within ~1s of hand marks.
 │   ├── fetch_topics.py Topic fetchers: Google Trends RSS (geo=AM + US),
 │   │                   hy-Wikipedia top reads, YouTube trending in AM
 │   │                   (reuses the scorer's OAuth). A failed source is a
@@ -205,6 +214,7 @@ python code/agents/generate_hints.py --word ալարկոտ   # one word, nothing
 python code/agents/review_agents.py  # what the loop did, and what it cost
 python code/agents/generate_questions.py   # stage 3: hints -> questions.json
 python code/agents/generate_show_script.py # stage 4: hints -> clip script
+python code/agents/measure_timeline.py VIDEO   # stage 5: rendered video -> timeline marks (--write saves)
 python code/agents/main.py           # demo: generate hints for one word
 ```
 
@@ -212,6 +222,23 @@ Stages 1–2 are DB-only; stages 3–4 write into the current episode's folder (
 `--episode`). Re-running a stage overwrites that episode rather than creating a
 new one, so iterating on words costs nothing. Run `new_episode.py` only when you
 actually start a new show.
+
+### New episode checklist
+
+1. `new_episode.py`, then stages 1-3 (`research_words`, `generate_hints`,
+   `generate_questions`). Stage 3 also fills `timeline.json`'s empty word rows.
+2. Hand-curate `answers[]` in `questions.json`: transliterations, the English
+   name, Cyrillic loanwords, nicknames. A missing spelling is a viewer who knew
+   the answer and scored zero.
+3. `generate_show_script.py` (stage 4). Paste `show_script_tts.txt` into HeyGen,
+   hand-add each `[pause 4 seconds]` in AI Studio, delete the marker text, and
+   render the episode as one video.
+4. `measure_timeline.py <video>` (stage 5): read the table, check the `?` rows
+   (teasers and window 1's start) against the video, then re-run with `--write`.
+   It replaces scrubbing by hand. If it stops with "can't tell pauses from
+   sentence breaks", the guess windows carry a music bed: try `--noise`.
+5. `.venv/bin/python code/scorer/preflight.py --video <video>` must say READY,
+   then follow "How to run" for show night.
 
 ## Setup on a new machine
 

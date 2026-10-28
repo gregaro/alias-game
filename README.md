@@ -77,7 +77,7 @@ Content is produced by small, config-driven agents (`code/agents/`). Each agent 
 YAML block (provider, model, temperature, token budget) plus a `SKILL.md` system prompt —
 adding an agent requires no code changes. Agents share state through a small SQLite DB.
 
-**One command per stage, four stages per show:**
+**One command per stage, four stages per show, plus one after the video is rendered:**
 
 ```
 python code/agents/new_episode.py          # stage 0: new episode folder, becomes current
@@ -85,7 +85,13 @@ python code/agents/research_words.py       # stage 1: live trends -> 10 playable
 python code/agents/generate_hints.py       # stage 2: 3 hints per word, show-ready
 python code/agents/generate_questions.py   # stage 3: hints -> questions.json (no LLM)
 python code/agents/generate_show_script.py # stage 4: hints -> the episode clip script
+python code/agents/measure_timeline.py VIDEO  # stage 5: rendered video -> timeline.json marks
 ```
+
+Stage 5 runs after you render the clip script in HeyGen: it finds each window's
+`start`/`teaser`/`hint` and the outro marks from the silences in the audio (no
+speech recognition), so nobody scrubs the video by hand. The full per-episode
+checklist is in `CLAUDE.md`.
 
 Every show gets its own folder (`questions/episodes/ep2-2026-07-12/`), so an old
 episode stays runnable rather than being overwritten — `chat_scorer.py --episode ep1`
