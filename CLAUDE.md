@@ -103,7 +103,7 @@ code/
 │   │                   Add an agent by adding a block; no code changes.
 │   └── skills/         One SKILL.md per agent role: hint_generation,
 │                       hint_critique, hint_solving, show_script,
-│                       difficulty_tuning, trend_research.
+│                       difficulty_tuning, trend_research, answer_variants.
 ├── overlay/
 │   ├── server.py       Flask overlay server. Serves overlay.html at /, live
 │   │                   state at /state, test controls at /timer/<seconds>
@@ -257,6 +257,7 @@ python code/agents/generate_hints.py # stage 2: word set -> hints (agent loop)
 python code/agents/generate_hints.py --word ալարկոտ   # one word, nothing saved
 python code/agents/review_agents.py  # what the loop did, and what it cost
 python code/agents/generate_questions.py   # stage 3: hints -> questions.json
+python code/agents/generate_questions.py --propose   # same, plus LLM-drafted answer variants you approve one by one
 python code/agents/generate_show_script.py # stage 4: hints -> clip script
 python code/agents/measure_timeline.py VIDEO   # stage 5: rendered video -> timeline marks (--write saves)
 python code/agents/main.py           # demo: generate hints for one word

@@ -47,6 +47,18 @@ agents:
     skill: hint_solving
     output: json
 
+  # Proposes extra accepted spellings for questions.json (generate_questions.py
+  # --propose). A human approves every one: a wrongly accepted synonym scores
+  # the wrong answer live, so this agent suggests and never decides. Claude on
+  # purpose — a different vendor from the Gemini hint writer, and the best
+  # Armenian transliteration of the three.
+  answer_proposer:
+    provider: anthropic
+    model: claude-opus-4-8       # rejects temperature — omit it
+    max_tokens: 4000
+    skill: answer_variants
+    output: json
+
   difficulty_monitor:
     provider: openrouter         # cheap model for high-volume scoring
     model: openai/gpt-4o-mini    # via OpenRouter, per the note above
