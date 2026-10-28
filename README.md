@@ -202,6 +202,14 @@ Show day (Pi): `python code/overlay/server.py` and `python code/scorer/chat_scor
 (broadcast must be live, not just scheduled). OBS (Mac): add a Browser Source pointed
 at `http://<pi-ip>:8080`, 1920×1080, layered above the host video.
 
+To switch or renew the YouTube account, run
+`.venv/bin/python code/scorer/reauth.py`, keep that process alive, and complete
+its consent link in Safari. For production, sign in as `barlylive@gmail.com`;
+the OAuth client can remain owned by the developer account. Paste the complete
+failed localhost redirect URL back into the same process, then verify with
+`.venv/bin/python code/scorer/youtube_auth.py` (expected: `Barly Live`). See
+`CLAUDE.md` for the full agent runbook and troubleshooting notes.
+
 ## Roadmap
 
 - [x] Accounts, OAuth, test stream

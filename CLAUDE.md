@@ -191,6 +191,50 @@ python code/overlay/server.py       # overlay server, binds 0.0.0.0:8080
 python code/scorer/chat_scorer.py   # scorer (broadcast must be LIVE, not just scheduled)
 ```
 
+### YouTube OAuth reauthorization
+
+The Google Cloud project and OAuth client may remain owned by the developer
+account. The Google account selected in the consent screen determines which
+YouTube channel the cached token controls. For
+the production broadcast, authorize `barlylive@gmail.com` and verify that the
+API reports the **Barly Live** channel.
+
+On a headless machine, use the dedicated flow from the repository root:
+
+```
+.venv/bin/python code/scorer/reauth.py
+```
+
+Agent procedure and pitfalls:
+
+1. Run `reauth.py` with outbound network access approved **from the start**.
+   The final exchange calls `oauth2.googleapis.com`; starting it in a network-
+   restricted sandbox wastes the one-time callback.
+2. Leave that exact process running at `Pasted URL:`. Do not restart or
+   interrupt it after generating the link: the state and PKCE verifier belong
+   to that process, so a callback cannot be handed to a new run.
+3. Open the printed link in Safari (known to complete this flow reliably) or a
+   private browser window. Sign in explicitly as `barlylive@gmail.com`, not the
+   developer account. The "Google hasn't verified this app" warning is expected
+   while the OAuth app is in testing; the invited test user can continue.
+4. Approve access. The redirect to `http://localhost:53682/` is expected to
+   fail because nothing listens there. Copy the **entire URL** from the address
+   bar and paste it into the still-running process.
+5. If the consent page spins forever, try Safari first. If necessary, while
+   signed in as `barlylive@gmail.com`, remove **Alias Game** at
+   `https://myaccount.google.com/connections`, then begin a completely fresh
+   run. Do not revoke access merely because the localhost redirect fails.
+6. Verify the result with outbound network access enabled:
+
+```
+.venv/bin/python code/scorer/youtube_auth.py
+```
+
+Success for production is `Authorized as: Barly Live`. The helper saves the
+new gitignored `code/secrets/token.json` and preserves an existing token under
+a timestamped backup name. OAuth callback URLs and authorization codes are
+sensitive, short-lived credentials; do not commit or record them in docs.
+
 The scorer runs whatever `questions/current_episode` names. To replay an older
 show, name it — the full folder name, or a shorthand (`ep1`, or just `1`). A
 shorthand that matches two episodes is an ERROR, never a guess, and the scorer
