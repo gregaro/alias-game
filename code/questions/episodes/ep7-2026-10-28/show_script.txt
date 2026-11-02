@@ -1,0 +1,107 @@
+=== INTRO (plays BEFORE the clock — record separately) ===
+Բարև, բարև, ջանըմ, բոլորդ եկաք, հա՞։ Կանոնները պարզ են՝ ես բառը նկարագրում եմ ակնարկներով, դուք չաթում գրում եք պատասխանը, ով ավելի արագ ու ճիշտ կգրի՝ ավելի շատ միավոր կհավաքի։ Քսանհինգ վայրկյան ունեք ամեն բառի վրա, ուղեղները տաքացրեք։ Սկսե՞նք, թե դեռ սուրճ եք խմում։
+
+Windows below are each exactly 25s and run back-to-back with NO gaps. Start the scorer as WINDOW 1 opens; it auto-advances every 25s. Each window reveals the PREVIOUS word's answer at its start (safe — that window is already closed), then hints the current word.
+
+===== WINDOW 1/10 — 25s — SCORING: Ամոթ =====
+>>> OPEN 0:00  (scorer begins counting «Ամոթ»)
+[lead-in] Առաջին բառն ընկավ, տեսնենք ով է արթուն։
+[teaser]  Գետինը մտնելու սուր ցանկություն։
+[pause 4 seconds]
+[hint]    Այն, ինչ անխուսափելիորեն զգում ես, երբ հյուր գնալիս պարզվում է՝ գուլպադ ծակ է։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 2/10 — 25s — SCORING: Խաբել =====
+>>> OPEN 0:00  (scorer begins counting «Խաբել»)
+[reveal «Ամոթ»] Պատասխանն Ամոթն էր։ Ով չգտավ՝ ոչինչ, հարևանները դեռ չեն իմացել, ծակ գուլպան էլ քեզ մոտ մնաց։
+[lead-in] Հաջորդը գալիս է, ու էս մեկը մի քիչ խորամանկ է։
+[teaser]  Չինական ապրանքը իտալականի տեղ ծախել
+[pause 4 seconds]
+[hint]    Այն գործողությունը, երբ շուկայում ութ հարյուր գրամ միրգը քեզ վրա ծախում են որպես մեկ կիլոգրամ
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 3/10 — 25s — SCORING: Փարիզ =====
+>>> OPEN 0:00  (scorer begins counting «Փարիզ»)
+[reveal «Խաբել»] Ճիշտ պատասխանն էր Խաբել։ Ութ հարյուր գրամը մեկ կիլոյի տեղ ծախողները հիմա ամաչելով են կարդում։
+[lead-in] Հիմա մի բան, որ, վստահ եմ, վայրկյանում կբռնեք։
+[teaser]  Ակորդեոն, բերետ և թեթև սնոբիզմ։
+[pause 4 seconds]
+[hint]    Ֆրանսիայի մայրաքաղաքը, որտեղ Լուվրից ժպտում է Մոնա Լիզան, ու ժամանակին երգում էր մեր Ազնավուրը։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 4/10 — 25s — SCORING: Ոզնի =====
+>>> OPEN 0:00  (scorer begins counting «Ոզնի»)
+[reveal «Փարիզ»] Դա Փարիզն էր, ախր։ Ազնավուրն էլ երգեց, Մոնա Լիզան էլ ժպտաց, իսկ դուք դեռ մտածու՞մ էիք։
+[lead-in] Հերթական բառը, շունչներդ պահեք։
+[teaser]  Անտառի քայլող, խշխշան ասեղնաբարձիկը։
+[pause 4 seconds]
+[hint]    Հեքիաթներում այս աշխատասեր կենդանին միշտ մեջքին խնձոր կամ սունկ շալակած է քայլում։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 5/10 — 25s — SCORING: Թոնիր =====
+>>> OPEN 0:00  (scorer begins counting «Թոնիր»)
+[reveal «Ոզնի»] Պատասխանը Ոզնին էր։ Գրկել ուզեցիք, հա՞, բայց բառը ծակծկեց ու փախավ։
+[lead-in] Սա մի տաք բառ է, տեսնենք ով կվառվի։
+[teaser]  Տատիկի գետնափոր միկրոալիքային վառարանը։
+[pause 4 seconds]
+[hint]    Գյուղի բակի գետնափոր կավե վառարանն է, առանց որի իսկական լավաշ չես ուտի։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 6/10 — 25s — SCORING: Մանդարին =====
+>>> OPEN 0:00  (scorer begins counting «Մանդարին»)
+[reveal «Թոնիր»] Ճիշտ պատասխանն էր Թոնիր։ Տատիկի միկրոալիքային վառարանը հիշեցի՞ք, թե խմորն արդեն պատին կպցրիք։
+[lead-in] Հաջորդ բառը բռնեք, մինչ ուշ չի եղել։
+[teaser]  Ձմեռային սեղանի քաղցր, փոքրիկ արևը։
+[pause 4 seconds]
+[hint]    Ամանորի սիրելի միրգն է՝ նարնջի փոքրիկ եղբայրը, որը մատներով արագ մաքրում ես ու շերտ-շերտ խժռում։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 7/10 — 25s — SCORING: Նկուղ =====
+>>> OPEN 0:00  (scorer begins counting «Նկուղ»)
+[reveal «Մանդարին»] Դա Մանդարինն էր, ջան։ Մեկը մաքրեցիք, ու հանկարծ մի կիլոն չքացավ, ճիշտ չէ՞։
+[lead-in] Հիմա իջնենք մի քիչ ավելի ցածր՝ նոր բառի մոտ։
+[teaser]  Մութ, ցուրտ ու լիքը կոմպոտ։
+[pause 4 seconds]
+[hint]    Շենքի ամենաներքևի հարկն է՝ գետնի տակ, որտեղ հին իրերն ու բանկաներն ապրում են հավերժ։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 8/10 — 25s — SCORING: Վարպետ =====
+>>> OPEN 0:00  (scorer begins counting «Վարպետ»)
+[reveal «Նկուղ»] Պատասխանն էր Նկուղ։ Ով չգտավ՝ հիմա տան ամենափոքրը պիտի աստիճաններով իջնի թթու բերելու։
+[lead-in] Էս բառը, համոզված եմ, ոմանք արդեն գրել են։
+[teaser]  «Ոսկե ձեռքերով» տան փրկիչը։
+[pause 4 seconds]
+[hint]    Խողովակդ նորոգողն ու մեծն Ավետիք Իսահակյանը կրում են հենց այս պատվավոր կոչումը։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 9/10 — 25s — SCORING: Թումանյան =====
+>>> OPEN 0:00  (scorer begins counting «Թումանյան»)
+[reveal «Վարպետ»] Ճիշտ պատասխանն էր Վարպետ։ Ուշանում է, հա՞, բայց առանց իր՝ խողովակդ ով նորոգի, Իսահակյա՞նը։
+[lead-in] Հաջորդը մի մեծ անուն է, ուղեղները լարեք։
+[teaser]  Լոռվա ամենահայտնի հեքիաթասացը:
+[pause 4 seconds]
+[hint]    Այն հանճարեղ լոռեցին է, ում գրած «Գիքորն» ու «Անուշը» հաստատ բոլորիդ գոնե մեկ անգամ լացացրել են:
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 10/10 — 25s — SCORING: Ֆիշկա =====
+>>> OPEN 0:00  (scorer begins counting «Ֆիշկա»)
+[reveal «Թումանյան»] Դա Թումանյանն էր, անշուշտ։ Մի կաթիլ մեղրից աշխարհը քանդվեց, իսկ դուք դպրոցում իզուր չէիք տանջվում։
+[lead-in] Եվ վերջին բառը, ամենահավեսը մնաց վերջում։
+[teaser]  Պոկերի սեղանի գունավոր արժույթը։
+[pause 4 seconds]
+[hint]    Ժարգոնում այսպես կոչվում է նաև մարդու կամ իրի այն ամենահավես առանձնահատկությունը, որով նա տարբերվում է։
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+=== OUTRO (after the last window closes) ===
+[reveal «Ֆիշկա»] Պատասխանը Ֆիշկան էր։ Վա-բանկ գնալը հիշեցիք, բայց ձեր ֆիշկան չգտաք, վատ է, ախ։
+Ապրե՛ք, լիդերբորդի առաջիններ, ձեր ուղեղները կրակի վրա էին այսօր։ Հաջորդ անգամ ավելի դաժան բառեր եմ բերելու, որ ոչ ոք չհանգստանա։ Բաժանորդագրվեք, եկեք նորից, ես ձեզ սպասում եմ՝ սուրճս ձեռքիս։
