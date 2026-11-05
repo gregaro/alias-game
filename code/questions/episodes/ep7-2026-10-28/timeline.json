@@ -28,17 +28,17 @@
     "Run generate_questions.py first: it fills in the word list here."
   ],
   "windows": [
-    {"word": "Ամոթ", "start": null, "teaser": null, "hint": null},
-    {"word": "Խաբել", "start": null, "teaser": null, "hint": null},
-    {"word": "Փարիզ", "start": null, "teaser": null, "hint": null},
-    {"word": "Ոզնի", "start": null, "teaser": null, "hint": null},
-    {"word": "Թոնիր", "start": null, "teaser": null, "hint": null},
-    {"word": "Մանդարին", "start": null, "teaser": null, "hint": null},
-    {"word": "Նկուղ", "start": null, "teaser": null, "hint": null},
-    {"word": "Վարպետ", "start": null, "teaser": null, "hint": null},
-    {"word": "Թումանյան", "start": null, "teaser": null, "hint": null},
-    {"word": "Ֆիշկա", "start": null, "teaser": null, "hint": null}
+    {"word": "Ամոթ", "start": 17.0, "teaser": 19.9, "hint": 26.2},
+    {"word": "Խաբել", "start": 41.8, "teaser": 53.6, "hint": 61.9},
+    {"word": "Փարիզ", "start": 77.4, "teaser": 87.5, "hint": 95.0},
+    {"word": "Ոզնի", "start": 110.8, "teaser": 119.5, "hint": 127.3},
+    {"word": "Թոնիր", "start": 142.9, "teaser": 151.3, "hint": 158.5},
+    {"word": "Մանդարին", "start": 173.4, "teaser": 183.3, "hint": 190.1},
+    {"word": "Նկուղ", "start": 206.5, "teaser": 214.5, "hint": 221.3},
+    {"word": "Վարպետ", "start": 237.6, "teaser": 248.1, "hint": 254.9},
+    {"word": "Թումանյան", "start": 269.8, "teaser": 279.5, "hint": 286.8},
+    {"word": "Ֆիշկա", "start": 302.8, "teaser": 313.8, "hint": 320.4}
   ],
-  "outro_start": null,
-  "outro_end": null
+  "outro_start": 337.8,
+  "outro_end": 351.6
 }

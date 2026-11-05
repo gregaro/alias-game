@@ -34,7 +34,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 
 ===== WINDOW 4/10 — 25s — SCORING: Քեռի =====
 >>> OPEN 0:00  (scorer begins counting «Քեռի»)
-[reveal «Սևան»] Սա Սևանն էր։ Վազեք թթվասեր բերելու ձեր կարմրած մեջքերի համար։
+[reveal «Սևան»] Սա Սևանն էր։ Վազեք մածուն բերելու ձեր կարմրած մեջքերի համար։
 [lead-in] Այստեղ պետք է մի փոքր փորփրել ձեր բարեկամական կապերը։
 [teaser]  Մոր կողմի գլխավոր հովանավորը։
 [pause 4 seconds]
