@@ -37,11 +37,11 @@ from pathlib import Path
 
 LOG_DIR = Path(__file__).parent.parent / "logs" / "agents"
 
-# Cost per 1M tokens, if you want money instead of tokens. Left empty on
-# purpose: prices move, and a stale number quietly reported as fact is worse
-# than no number. Fill in what you actually pay, e.g.
-#   "google/gemini-3.1-pro-preview": (1.25, 10.00),   # (input, output)
-PRICES: dict[str, tuple[float, float]] = {}
+import prices
+
+# Cost per 1M tokens lives in prices.json (each model dated), not here: prices
+# move, and a stale number quietly reported as fact is worse than no number.
+PRICES: dict[str, tuple[float, float]] = prices.table()
 
 
 def newest_log() -> Path:
@@ -214,10 +214,17 @@ def report_cost(events: list[dict]) -> None:
             pin, pout = PRICES[model]
             total_cost += row["in"] / 1e6 * pin + row["out"] / 1e6 * pout
     print(f"\n  {total_calls} calls total.")
+    unpriced = sorted({m for (_, m) in per if m not in PRICES})
     if total_cost:
-        print(f"  Approx cost: ${total_cost:.2f}  (from the PRICES table)")
+        note = f" — EXCLUDES unpriced: {', '.join(map(str, unpriced))}" if unpriced else ""
+        print(f"  Approx cost: ${total_cost:.2f}  (prices.json{note})")
     else:
-        print("  Fill in PRICES at the top of this file to see money.")
+        print("  No prices for these models — add them to prices.json.")
+    if unpriced and total_cost:
+        print("  Add the unpriced models to prices.json for a full total.")
+    w = prices.warning()
+    if w:
+        print(f"  WARNING: {w}")
     print()
 
 

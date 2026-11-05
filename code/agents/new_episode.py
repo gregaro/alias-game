@@ -84,6 +84,12 @@ def main():
     episode.set_current(name)
     print(f"Created {d}")
     print(f"current_episode -> {name}\n")
+    # Cost reports use prices.json; a new episode is the natural moment to
+    # notice it has gone stale, before the stages that spend money run.
+    import prices
+    w = prices.warning()
+    if w:
+        print(f"WARNING: {w}\n")
     print("Next: python code/agents/research_words.py   (stage 1)")
 
 

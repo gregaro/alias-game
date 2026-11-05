@@ -63,6 +63,12 @@ code/
 │   │                   missed the bar, rounds where the loop made things
 │   │                   WORSE, solver extremes, tokens per model. The
 │   │                   review_log.py of the agent side — run it after a run.
+│   ├── prices.py       Model prices (USD/1M tokens) in prices.json, each
+│   │                   dated. review_agents.py turns tokens into dollars with
+│   │                   them; new_episode.py and review_agents warn when an
+│   │                   entry is >30 days old. --refresh updates OpenRouter
+│   │                   models from its public API; Anthropic has no pricing
+│   │                   API, so edit those by hand and bump `checked`.
 │   ├── generate_questions.py  Stage three (no LLM): hints from the DB ->
 │   │                   ../questions/questions.json for the scorer. Keeps
 │   │                   existing scoring settings; answers still need a
@@ -256,6 +262,7 @@ python code/agents/research_words.py # stage 1: trends -> word set
 python code/agents/generate_hints.py # stage 2: word set -> hints (agent loop)
 python code/agents/generate_hints.py --word ալարկոտ   # one word, nothing saved
 python code/agents/review_agents.py  # what the loop did, and what it cost
+python code/agents/prices.py --refresh   # re-pull OpenRouter prices; Anthropic ones are hand-edited in prices.json (warns when >30 days old)
 python code/agents/generate_questions.py   # stage 3: hints -> questions.json
 python code/agents/generate_questions.py --propose   # same, plus LLM-drafted answer variants you approve one by one
 python code/agents/generate_show_script.py # stage 4: hints -> clip script
