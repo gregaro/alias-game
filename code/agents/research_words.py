@@ -12,6 +12,7 @@ counters here: (1) each run samples a few focus_domains that steer the
 model toward a different corner of word-space, and (2) the model returns
 a large candidate pool from which random.sample() picks the final set.
 """
+import argparse
 import json
 import random
 import sys
@@ -32,8 +33,10 @@ from orchestrator import Orchestrator
 sys.path.insert(0, str(Path(__file__).parent.parent / "scorer"))
 from normalize import normalize
 
-WORD_COUNT = 10        # words per show
-CANDIDATE_COUNT = 25   # pool the model returns; code samples the show set
+WORD_COUNT = 10        # DEFAULT words per show; override with --words N
+# The pool and domain spread scale with the show size (see main): a 20-word
+# show from a 25-word pool leaves the sampler no room to drop weak words.
+CANDIDATE_COUNT = 25   # pool the model returns at the default size; code samples the show set
 FOCUS_DOMAINS_PER_RUN = 6   # thin spread: a couple of candidates from each,
                             # not a pool themed around 3 big assignments
 # Trends season the set; they don't drive it. At most this many words may
@@ -110,7 +113,7 @@ def recent_words(max_runs: int = 3) -> list[str]:
     return words
 
 
-def pick_show_set(candidates: list[dict]) -> list[dict]:
+def pick_show_set(candidates: list[dict], word_count: int = WORD_COUNT) -> list[dict]:
     """Randomly sample the show set from the candidate pool. Trend picks are
     kept (they're the timely part, capped at MAX_TREND_WORDS anyway);
     wildcards are drawn by lot so consecutive runs diverge even when the
@@ -127,7 +130,7 @@ def pick_show_set(candidates: list[dict]) -> list[dict]:
     used_domains = {c.get("domain", "").lower() for c in trends}
     chosen = list(trends)
     for c in random.sample(wildcards, len(wildcards)):  # shuffled copy
-        if len(chosen) == WORD_COUNT:
+        if len(chosen) >= word_count:
             break
         domain = c.get("domain", "").lower()
         if domain and domain in used_domains:
@@ -135,7 +138,7 @@ def pick_show_set(candidates: list[dict]) -> list[dict]:
         used_domains.add(domain)
         chosen.append(c)
     for c in random.sample(wildcards, len(wildcards)):  # relax cap if short
-        if len(chosen) == WORD_COUNT:
+        if len(chosen) >= word_count:
             break
         if c not in chosen:
             chosen.append(c)
@@ -145,6 +148,18 @@ def pick_show_set(candidates: list[dict]) -> list[dict]:
 
 
 def main():
+    p = argparse.ArgumentParser(description="Stage 1: pick the show's words.")
+    p.add_argument("--words", type=int, default=WORD_COUNT, metavar="N",
+                   help=f"words in the show (default {WORD_COUNT})")
+    args = p.parse_args()
+    if args.words < 1:
+        raise SystemExit("--words must be at least 1")
+    word_count = args.words
+    # Keep the default run identical to before (25 / 6); grow only past 10.
+    candidate_count = max(CANDIDATE_COUNT, round(word_count * 2))
+    n_domains = min(len(DOMAINS), max(FOCUS_DOMAINS_PER_RUN, word_count // 2))
+    print(f"Show size: {word_count} words (pool {candidate_count}, {n_domains} focus domains)")
+
     topics = fetch_all()
     if not topics:
         raise SystemExit("No topics fetched from any geo — check the network.")
@@ -163,7 +178,7 @@ def main():
         if avoid:
             print(f"\nAvoiding {len(avoid)} recently used words: {', '.join(avoid)}")
 
-    focus = random.sample(DOMAINS, FOCUS_DOMAINS_PER_RUN)
+    focus = random.sample(DOMAINS, n_domains)
     print(f"\nFocus domains this run: {', '.join(focus)}")
 
     # persist=False: last_output must hold the sampled SHOW set (it feeds
@@ -176,7 +191,7 @@ def main():
         context={
             "topics": topics,
             "recent_words": avoid,
-            "count": CANDIDATE_COUNT,
+            "count": candidate_count,
             "max_trend_words": MAX_TREND_WORDS,
             "focus_domains": focus,
         },
@@ -187,7 +202,10 @@ def main():
     print(f"\nCandidate pool ({len(candidates)}): "
           f"{', '.join(c['word'] for c in candidates)}")
 
-    show_set = {"words": pick_show_set(candidates)}
+    show_set = {"words": pick_show_set(candidates, word_count)}
+    if len(show_set["words"]) < word_count:
+        print(f"\nWARNING: only {len(show_set['words'])} of {word_count} words — "
+              "the pool was too small. Re-run stage 1.")
     db.save_state("trend_researcher", "last_output", show_set)
 
     print("\nSelected words (randomly sampled from the pool):")

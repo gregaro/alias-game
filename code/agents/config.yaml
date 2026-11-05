@@ -71,7 +71,7 @@ agents:
     provider: openrouter
     model: google/gemini-3.1-pro-preview   # same voice family as the hints
     temperature: 0.8
-    max_tokens: 8000               # one call writes the whole episode frame
+    max_tokens: 16000              # one call writes the whole frame; headroom for 20 words + model reasoning tokens
     skill: show_script
     output: json
     fallback:

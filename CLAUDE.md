@@ -258,7 +258,7 @@ Agents (need `ANTHROPIC_API_KEY`/`OPENAI_API_KEY`/`OPENROUTER_API_KEY` in
 
 ```
 python code/agents/new_episode.py    # per show, stage 0: new folder + point current_episode at it
-python code/agents/research_words.py # stage 1: trends -> word set
+python code/agents/research_words.py # stage 1: trends -> word set (--words N for a show size other than 10)
 python code/agents/generate_hints.py # stage 2: word set -> hints (agent loop)
 python code/agents/generate_hints.py --word ալարկոտ   # one word, nothing saved
 python code/agents/review_agents.py  # what the loop did, and what it cost
