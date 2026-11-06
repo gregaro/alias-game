@@ -9,12 +9,10 @@ questions.json:
   show_script.txt   human reference: window boundaries + labels, for
                     understanding flow and scorer timing (NOT for TTS —
                     its markers would be read aloud)
-  show_script_tts.txt  paste-ready HeyGen script: clean Armenian with inline
-                    [pause N seconds] markers. HeyGen does NOT parse these
-                    from pasted text — they're a placeholder telling you
-                    where and how long a pause to insert by hand via
-                    HeyGen's AI Studio pause tool. One clip per window,
-                    guessing padding + scorer handle the rest.
+  show_script_tts.txt  paste-ready HeyGen script: clean Armenian with
+                    inline <break time="5s" /> (teaser -> long hint) and
+                    <break time="10s" /> (guessing time after each word)
+                    tags, which HeyGen reads itself. Paste the whole file.
 
 Each word is a 2-hint round inside ONE window_seconds window: the teaser
 opens it, a 3-4s beat later the confident closer lands, then guessing
@@ -90,39 +88,21 @@ GUESS_PAUSE = 10
 
 def assemble_tts(intro: str, windows: list[dict], final_reveal: str,
                  outro: str) -> str:
-    """Paste-ready HeyGen script. The inline `[pause N seconds]` markers are
-    NOT parsed by HeyGen from pasted text — add the actual pause via HeyGen's
-    AI Studio pause tool at that point in the clip, for that many seconds,
-    then delete the marker text itself before rendering. Once inserted by
-    hand, the 3-4s beat between the two hints lives in the same clip as the
-    rest of the window — no editor splicing needed to place it. Guessing
-    time (idle host) still fills the rest of the window in the editor, and
-    the scorer enforces the real boundary. Each window opens by announcing
-    the PREVIOUS word's answer (its window is already closed). Copy one
-    block at a time; the `#` lines are never narrated."""
-    lines = [
-        "# HeyGen script. [pause N seconds] markers are NOT read by HeyGen —",
-        "# they mark where to add a real pause by hand via HeyGen's AI Studio",
-        "# pause tool, for that many seconds; delete the marker text once the",
-        "# pause is inserted. Render each block as its own clip. The pause after",
-        "# the long hint is the guessing time before the next reveal.",
-        "# NEVER paste the # comment lines.",
-        "",
-        "# --- INTRO ---",
-        intro,
-        "",
-    ]
-    for i, w in enumerate(windows, 1):
+    """Paste-ready HeyGen script, the WHOLE file, no comment lines: HeyGen
+    reads `<break time="5s" />` tags itself, so the pauses are baked in on
+    render with no hand-adding in AI Studio. 5s sits between a word's teaser
+    and its long hint; 10s on its own paragraph closes each word (the guessing
+    time before the next reveal). Each window opens by announcing the PREVIOUS
+    word's answer (its window is already closed)."""
+    hint_break = f'<break time="{HINT_PAUSE}s" />'
+    guess_break = f'<break time="{GUESS_PAUSE}s" />'
+    paras = [intro]
+    for w in windows:
         parts = [w["reveal_prev"]] if w["reveal_prev"] else []
-        parts += [w["lead_in"], w["teaser"], f"[pause {HINT_PAUSE} seconds]",
-                  w["closer"], f"[pause {GUESS_PAUSE} seconds]"]
-        lines += [
-            f"# --- WINDOW {i}: {w['word']} ---",
-            " ".join(parts),
-            "",
-        ]
-    lines += ["# --- OUTRO ---", final_reveal + " " + outro, ""]
-    return "\n".join(lines)
+        parts += [w["lead_in"], w["teaser"], hint_break, w["closer"]]
+        paras += [" ".join(parts), guess_break]
+    paras.append(final_reveal + " " + outro)
+    return "\n\n".join(paras) + "\n"
 
 
 def assemble_txt(intro: str, words: list[dict], outro: str,

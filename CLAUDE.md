@@ -12,11 +12,10 @@ question, not a design input.
 ## Core architecture
 
 - **Pre-render everything.** The host is scripted, so the whole episode is
-  rendered ahead of time as one HeyGen video. The `[pause N seconds]` markers
-  in the script are NOT parsed by HeyGen — each pause is added by hand via
-  HeyGen's AI Studio pause tool at the marked spot (then the marker text is
-  deleted), so the beat between a word's two hints ends up baked into the
-  clip. The only *live* parts are chat ingestion, scoring, and the overlay.
+  rendered ahead of time as one HeyGen video. The `<break time="5s" />` tags
+  in `show_script_tts.txt` are read by HeyGen itself (5s between a word's
+  teaser and long hint, 10s of guessing time after each word), so the pauses
+  end up baked into the clip with no hand-editing in AI Studio. The only *live* parts are chat ingestion, scoring, and the overlay.
 - **The video is the clock.** Because the pauses and each word's speech run
   different lengths, windows are NOT a fixed number of seconds. Second-marks are
   measured off the rendered video into `questions/timeline.json`, and the scorer
@@ -82,8 +81,8 @@ code/
 │   │                   the hints and writes ../questions/show_script.txt
 │   │                   (human reference), .json (automation) and
 │   │                   _tts.txt — the paste-ready HeyGen sheet; its inline
-│   │                   [pause 4 seconds] markers show where to hand-add
-│   │                   the pause in AI Studio (HeyGen doesn't parse them).
+│   │                   <break time="5s" /> / <break time="10s" /> tags are
+│   │                   read by HeyGen: paste the whole file, no comments.
 │   ├── measure_timeline.py  Stage five (no LLM): rendered video ->
 │   │                   timeline.json marks. ffmpeg silencedetect, no speech
 │   │                   recognition: the 2N longest gaps (pause + guess window
@@ -282,9 +281,9 @@ actually start a new show.
 2. Hand-curate `answers[]` in `questions.json`: transliterations, the English
    name, Cyrillic loanwords, nicknames. A missing spelling is a viewer who knew
    the answer and scored zero.
-3. `generate_show_script.py` (stage 4). Paste `show_script_tts.txt` into HeyGen,
-   hand-add each `[pause 4 seconds]` in AI Studio, delete the marker text, and
-   render the episode as one video.
+3. `generate_show_script.py` (stage 4). Paste `show_script_tts.txt` into HeyGen
+   as-is (its `<break>` tags make the pauses) and render the episode as one
+   video.
 4. `measure_timeline.py <video>` (stage 5): read the table, check the `?` rows
    (teasers and window 1's start) against the video, then re-run with `--write`.
    It replaces scrubbing by hand. If it stops with "can't tell pauses from

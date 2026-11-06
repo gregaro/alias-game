@@ -15,11 +15,11 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 
 ===== WINDOW 2/20 — 25s — SCORING: փուչիկ =====
 >>> OPEN 0:00  (scorer begins counting «փուչիկ»)
-[reveal «պաղպաղակ»] Բառը պաղպաղակն էր։ Հուսամ՝ հասցրիք գրել մինչև հալչելը։
+[reveal «պաղպաղակ»] Ճիշտ բառը պաղպաղակն էր։ Հուսամ՝ հասցրիք գրել մինչև հալչելը։
 [lead-in] Տեսնենք, թե այս մեկի հետ ոնց եք գլուխ դնելու։
 [teaser]  Ասեղից վախեցող գունավոր գունդ։
 [pause 5 seconds]
-[hint]    Միշտ վերև է նայում, բայց մի քիչ քամի՝ ու երեխայի լացն ապահով է։
+[hint]    Միշտ վեր է նայում, բայց մի քիչ քամի՝ ու երեխայի լացն ապահովված է։
 [pause 10 seconds]  (guessing time, before the next reveal)
 [viewers keep typing until the window ends]
 <<< CLOSE 0:25  (next window opens immediately)
@@ -48,7 +48,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 
 ===== WINDOW 5/20 — 25s — SCORING: հաշվիչ =====
 >>> OPEN 0:00  (scorer begins counting «հաշվիչ»)
-[reveal «տոմս»] Պատասխանն էր տոմս։ Հաստատ բոլորիդ էլ մի անգամ վերահսկիչը վախեցրել է։
+[reveal «տոմս»] Պատասխանն էր տոմս։ Հաստատ բոլորիդ էլ մի անգամ հսկիչը վախեցրել է։
 [lead-in] Դե ինչ, անցնենք առաջ, ինձ թվում է՝ այստեղ կդժվարանաք։
 [teaser]  Ծույլերի մաթեմատիկական փրկօղակը։
 [pause 5 seconds]
@@ -59,7 +59,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 
 ===== WINDOW 6/20 — 25s — SCORING: փռշտալ =====
 >>> OPEN 0:00  (scorer begins counting «փռշտալ»)
-[reveal «հաշվիչ»] Բառը հաշվիչն էր։ Փաստորեն մեր մաթեմատիկայի ուսուցիչները մեզ լավ էլ խաբում էին։
+[reveal «հաշվիչ»] Բառը հաշվիչն էր։ Փաստորեն մեր մաթեմատիկայի ուսուցիչները մեզանից դա թաքցնում էին։
 [lead-in] Հավաքեք ձեր մտքերը, որովհետև սա իսկական փորձություն է լինելու։
 [teaser]  Քթի խուտուտի ամենաաղմկոտ ավարտը։
 [pause 5 seconds]
@@ -126,7 +126,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 ===== WINDOW 12/20 — 25s — SCORING: ծիածան =====
 >>> OPEN 0:00  (scorer begins counting «ծիածան»)
 [reveal «հարսանիք»] Ճիշտ պատասխանն է հարսանիք։ Անկեղծ ասեք, քանի՞ հատ տարոսիկ ունեք տանը հավաքած։
-[lead-in] Շատ լավ եք գնում, եկեք տեսնենք այստեղ ինչ կանեք։
+[lead-in] Շատ լավ եք գրում, եկեք տեսնենք այստեղ ինչ կանեք։
 [teaser]  Երկնքի անվճար ինստագրամյան ֆիլտրը։
 [pause 5 seconds]
 [hint]    Անձրևից հետո երկնքում ձգվող յոթգույն կամարն է, որի տակով մանուկ ժամանակ փորձում էինք անցնել։
@@ -148,7 +148,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 ===== WINDOW 14/20 — 25s — SCORING: արմունկ =====
 >>> OPEN 0:00  (scorer begins counting «արմունկ»)
 [reveal «Հռոմ»] Պատասխանն էր Հռոմ։ Դե բոլոր ճանապարհները տանում են այնտեղ, բայց մեր խաղը տանում է հաջորդ բառին։
-[lead-in] Այս մեկն ինձ շատ է դուր գալիս, տեսնենք ձեզ էլ դուր կգա։
+[lead-in] Այս մեկն ինձ շատ է դուր գալիս, տեսնենք ձեզ էլ դուր կգա՞։
 [teaser]  Անսպասելի հոսանք՝ սեղանի ծայրից։
 [pause 5 seconds]
 [hint]    Ձեռքի մեջտեղի ծալվող մասն է, որով շատ հարմար է լեփ-լեցուն ավտոբուսում ճամփա բացելը։
@@ -162,7 +162,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 [lead-in] Հիմա հաստատ չաթում իսկական խառնաշփոթ է սկսվելու։
 [teaser]  Մերգելյանի և շաուրմաների սուրբ խաչմերուկը։
 [pause 5 seconds]
-[hint]    Երևանի այս թաղամասի գլխավոր զարկերակը Կոմիտասի պողոտան է՝ իր լեգենդար խցանումներով ու խանութներով։
+[hint]    Երևանի այս վարչական շրջանի գլխավոր զարկերակը Կոմիտասի պողոտան է՝ իր լեգենդար խցանումներով ու խանութներով։
 [pause 10 seconds]  (guessing time, before the next reveal)
 [viewers keep typing until the window ends]
 <<< CLOSE 0:25  (next window opens immediately)
@@ -195,7 +195,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 [lead-in] Ուշադիր կարդացեք հուշումները, դրանք ձեզ շատ ծանոթ են լինելու։
 [teaser]  Մեծատառ, փոքրատառ, թիվ ու նշան։
 [pause 5 seconds]
-[hint]    Ծույլերն ուղղակի դնում են «123456» կամ իրենց ծննդյան թիվը՝ հուսալով, որ էջը չեն կոտրի։
+[hint]    Ծույլերն ուղղակի դնում են «1 2 3 4 5 6» կամ իրենց ծննդյան թիվը՝ հուսալով, որ էջը չեն կոտրի։
 [pause 10 seconds]  (guessing time, before the next reveal)
 [viewers keep typing until the window ends]
 <<< CLOSE 0:25  (next window opens immediately)
