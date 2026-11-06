@@ -1,0 +1,227 @@
+=== INTRO (plays BEFORE the clock — record separately) ===
+Ողջույն բոլորին, պատրաստվեք իսկական ուղեղի մարզանքի։ Ես կարդում եմ հուշումներ, իսկ դուք ունեք ընդամենը քսանհինգ վայրկյան՝ ճիշտ պատասխանը չաթում գրելու համար։ Հիշեք, որ որքան արագ գուշակեք, այնքան շատ միավոր կվաստակեք։ Խոստանում եմ, որ լիքը ծիծաղելու ենք, դե գնացինք։
+
+Windows below are each exactly 25s and run back-to-back with NO gaps. Start the scorer as WINDOW 1 opens; it auto-advances every 25s. Each window reveals the PREVIOUS word's answer at its start (safe — that window is already closed), then hints the current word.
+
+===== WINDOW 1/20 — 25s — SCORING: պաղպաղակ =====
+>>> OPEN 0:00  (scorer begins counting «պաղպաղակ»)
+[lead-in] Սկսենք մի բառից, որը հաստատ շատ արագ կգտնեք։
+[teaser]  Վաֆլե բաժակով ամառային երջանկություն։
+[pause 5 seconds]
+[hint]    Շոկոլադե կամ վանիլային սառը աղանդեր է, որն արագ լիզում ես, որ վրադ չհալչի։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 2/20 — 25s — SCORING: փուչիկ =====
+>>> OPEN 0:00  (scorer begins counting «փուչիկ»)
+[reveal «պաղպաղակ»] Բառը պաղպաղակն էր։ Հուսամ՝ հասցրիք գրել մինչև հալչելը։
+[lead-in] Տեսնենք, թե այս մեկի հետ ոնց եք գլուխ դնելու։
+[teaser]  Ասեղից վախեցող գունավոր գունդ։
+[pause 5 seconds]
+[hint]    Միշտ վերև է նայում, բայց մի քիչ քամի՝ ու երեխայի լացն ապահով է։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 3/20 — 25s — SCORING: խորոված =====
+>>> OPEN 0:00  (scorer begins counting «խորոված»)
+[reveal «փուչիկ»] Ճիշտ պատասխանն է փուչիկ։ Լավ է, որ մեր չաթում քամի չկա, թե չէ երեխեքը հաստատ կլացեին։
+[lead-in] Հաջորդի համար խորհուրդ եմ տալիս ուղղակի կենտրոնանալ ու արագ շարժել մատները։
+[teaser]  Տղամարդկանց միակ խոհարարական հպարտությունը:
+[pause 5 seconds]
+[hint]    Շամփուրի վրա շարված համեմված միս է, որն ածուխների վրա կարմրելուց հետո արագ քաշում են լավաշի մեջ:
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 4/20 — 25s — SCORING: տոմս =====
+>>> OPEN 0:00  (scorer begins counting «տոմս»)
+[reveal «խորոված»] Սա, իհարկե, խորովածն էր։ Ակամայից սկսեցիք ծխի հոտ առնել, չէ՞։
+[lead-in] Շարունակում ենք, հիմա մի փոքր ավելի ուշադիր եղեք։
+[teaser]  Ամենաթանկարժեք թուղթը ճամփորդելուց առաջ։
+[pause 5 seconds]
+[hint]    Առանց սրա համար վճարելու՝ քեզ հաստատ ներս չեն թողնի ո՛չ համերգասրահ, ո՛չ էլ կինոթատրոն։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 5/20 — 25s — SCORING: հաշվիչ =====
+>>> OPEN 0:00  (scorer begins counting «հաշվիչ»)
+[reveal «տոմս»] Պատասխանն էր տոմս։ Հաստատ բոլորիդ էլ մի անգամ վերահսկիչը վախեցրել է։
+[lead-in] Դե ինչ, անցնենք առաջ, ինձ թվում է՝ այստեղ կդժվարանաք։
+[teaser]  Ծույլերի մաթեմատիկական փրկօղակը։
+[pause 5 seconds]
+[hint]    Սարք կամ հեռախոսի ծրագիր, որտեղ թվեր ես խփում՝ արագ բազմապատկելու կամ բաժանելու համար։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 6/20 — 25s — SCORING: փռշտալ =====
+>>> OPEN 0:00  (scorer begins counting «փռշտալ»)
+[reveal «հաշվիչ»] Բառը հաշվիչն էր։ Փաստորեն մեր մաթեմատիկայի ուսուցիչները մեզ լավ էլ խաբում էին։
+[lead-in] Հավաքեք ձեր մտքերը, որովհետև սա իսկական փորձություն է լինելու։
+[teaser]  Քթի խուտուտի ամենաաղմկոտ ավարտը։
+[pause 5 seconds]
+[hint]    Հայտնի «ափչու»-ն անելն է, որին ի պատասխան կողքիններդ անմիջապես առողջություն են մաղթում։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 7/20 — 25s — SCORING: Ռոնալդու =====
+>>> OPEN 0:00  (scorer begins counting «Ռոնալդու»)
+[reveal «փռշտալ»] Ճիշտ պատասխանն է փռշտալ։ Առողջություն բոլոր նրանց, ովքեր էկրանի այն կողմում հենց նոր ափչու արեցին։
+[lead-in] Իսկ հիմա մի բառ, որը գուշակելու համար հատուկ գիտելիքներ պետք չեն։
+[teaser]  Պորտուգալական գել ու մկաններ։
+[pause 5 seconds]
+[hint]    Յոթ համարով խաղացող այս ֆուտբոլիստը գոլից հետո ցատկում է ու գոռում՝ «Սյուուու»։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 8/20 — 25s — SCORING: խոհարար =====
+>>> OPEN 0:00  (scorer begins counting «խոհարար»)
+[reveal «Ռոնալդու»] Սա Ռոնալդուն էր։ Չաթում կարող եք մի հատ բոլորով սյուուու գրել։
+[lead-in] Անցանք հաջորդին, պատրաստեք ձեր ստեղնաշարերը։
+[teaser]  Սովածների ամենասիրելի արվեստագետը։
+[pause 5 seconds]
+[hint]    Նա ամբողջ օրը ռեստորանում ուտելիք է եփում, բայց հաճախ տուն է գնում սոված։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 9/20 — 25s — SCORING: դերասան =====
+>>> OPEN 0:00  (scorer begins counting «դերասան»)
+[reveal «խոհարար»] Պատասխանն էր խոհարար։ Գնացեք ստուգեք, տեսեք խոհանոցում ձեր ընթրիքը չի վառվել արդյոք։
+[lead-in] Տեսնենք, թե ով է առաջինը կռահելու մեր նոր բառը։
+[teaser]  Կինոյի պրոֆեսիոնալ ստախոսները։
+[pause 5 seconds]
+[hint]    Այն մարդը, ում բուն մասնագիտությունն է թատրոնում և ֆիլմերում տարբեր կերպարներ մարմնավորելը։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 10/20 — 25s — SCORING: ոզնի =====
+>>> OPEN 0:00  (scorer begins counting «ոզնի»)
+[reveal «դերասան»] Բառը դերասանն էր։ Շատերդ այս բառը կարդալիս հաստատ ինչ-որ մեկին հիշեցիք։
+[lead-in] Մի փոքր թուլացեք, սա համեմատաբար պարզ է լինելու։
+[teaser]  Ամառանոցի գիշերային խշխշացող հյուրը։
+[pause 5 seconds]
+[hint]    Այգու այն փոքրիկ բնակիչն է, որին շոյելու փորձերը միշտ ավարտվում են ծակծկված մատներով։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 11/20 — 25s — SCORING: հարսանիք =====
+>>> OPEN 0:00  (scorer begins counting «հարսանիք»)
+[reveal «ոզնի»] Սա ոզնին էր։ Զգույշ եղեք, որ պատասխանը գրելիս մատներդ հանկարծ չծակեք։
+[lead-in] Հաջորդի համար պարզապես լարեք ձեր հիշողությունը ու արագ գրեք։
+[teaser]  Քավոր, տարոսիկ, անվերջ տաշի-տուշի:
+[pause 5 seconds]
+[hint]    Ամենաճոխ խնջույքը, որի վերջում չամուսնացած աղջիկներն իրար հրելով սպասում են օդ նետվող ծաղկեփնջին:
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 12/20 — 25s — SCORING: ծիածան =====
+>>> OPEN 0:00  (scorer begins counting «ծիածան»)
+[reveal «հարսանիք»] Ճիշտ պատասխանն է հարսանիք։ Անկեղծ ասեք, քանի՞ հատ տարոսիկ ունեք տանը հավաքած։
+[lead-in] Շատ լավ եք գնում, եկեք տեսնենք այստեղ ինչ կանեք։
+[teaser]  Երկնքի անվճար ինստագրամյան ֆիլտրը։
+[pause 5 seconds]
+[hint]    Անձրևից հետո երկնքում ձգվող յոթգույն կամարն է, որի տակով մանուկ ժամանակ փորձում էինք անցնել։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 13/20 — 25s — SCORING: Հռոմ =====
+>>> OPEN 0:00  (scorer begins counting «Հռոմ»)
+[reveal «ծիածան»] Բառը ծիածանն էր։ Ով մանուկ ժամանակ փորձել է դրա տակով անցնել, թող պլյուս դնի։
+[lead-in] Պատրաստվեք, հիմա մի քիչ ուղեղը պետք է շարժել։
+[teaser]  Կոլիզեյ, պաստա ու հավերժություն։
+[pause 5 seconds]
+[hint]    Ճտքակոշիկ հիշեցնող երկրի մայրաքաղաքն է, որի հենց սրտում Վատիկանն է ծվարել։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 14/20 — 25s — SCORING: արմունկ =====
+>>> OPEN 0:00  (scorer begins counting «արմունկ»)
+[reveal «Հռոմ»] Պատասխանն էր Հռոմ։ Դե բոլոր ճանապարհները տանում են այնտեղ, բայց մեր խաղը տանում է հաջորդ բառին։
+[lead-in] Այս մեկն ինձ շատ է դուր գալիս, տեսնենք ձեզ էլ դուր կգա։
+[teaser]  Անսպասելի հոսանք՝ սեղանի ծայրից։
+[pause 5 seconds]
+[hint]    Ձեռքի մեջտեղի ծալվող մասն է, որով շատ հարմար է լեփ-լեցուն ավտոբուսում ճամփա բացելը։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 15/20 — 25s — SCORING: Արաբկիր =====
+>>> OPEN 0:00  (scorer begins counting «Արաբկիր»)
+[reveal «արմունկ»] Բառը արմունկն էր։ Միայն թե հիմա պատահաբար չխփեք սեղանին, որ հոսանք չտա։
+[lead-in] Հիմա հաստատ չաթում իսկական խառնաշփոթ է սկսվելու։
+[teaser]  Մերգելյանի և շաուրմաների սուրբ խաչմերուկը։
+[pause 5 seconds]
+[hint]    Երևանի այս թաղամասի գլխավոր զարկերակը Կոմիտասի պողոտան է՝ իր լեգենդար խցանումներով ու խանութներով։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 16/20 — 25s — SCORING: գաթա =====
+>>> OPEN 0:00  (scorer begins counting «գաթա»)
+[reveal «Արաբկիր»] Սա Արաբկիրն էր։ Կենտրոնի բնակիչները երևի մի քիչ նեղացան այս հուշումներից։
+[lead-in] Նախորդի լարվածությունը թոթափելու համար՝ եկեք անցնենք առաջ։
+[teaser]  Պատառաքաղով նախշած տոնական կլորակ։
+[pause 5 seconds]
+[hint]    Ավանդական կլոր խմորեղեն է՝ երեսը նախշազարդ, որի քաղցր խորիզի կեսն ուտելիս պարտադիր թափվում է շորերիդ։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 17/20 — 25s — SCORING: կենաց =====
+>>> OPEN 0:00  (scorer begins counting «կենաց»)
+[reveal «գաթա»] Ճիշտ պատասխանն է գաթա։ Հիմա հաստատ բոլորդ էլ մի կտոր քաղցր խորիզ կուզեիք։
+[lead-in] Չենք հանձնվում, առջևում դեռ հետաքրքիր բաներ կան։
+[teaser]  Թամադայի ամենաերկարաշունչ զենքը։
+[pause 5 seconds]
+[hint]    Առողջություն մաղթելու այն ավանդական միջոցը, որն աշխատում է միայն բաժակներն օդ բարձրացնելու և չխկացնելու դեպքում։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 18/20 — 25s — SCORING: գաղտնաբառ =====
+>>> OPEN 0:00  (scorer begins counting «գաղտնաբառ»)
+[reveal «կենաց»] Բառը կենացն էր։ Խոստովանեք, որ լիքը բաժակով սպասելը մեր ազգային սպորտաձևերից է։
+[lead-in] Ուշադիր կարդացեք հուշումները, դրանք ձեզ շատ ծանոթ են լինելու։
+[teaser]  Մեծատառ, փոքրատառ, թիվ ու նշան։
+[pause 5 seconds]
+[hint]    Ծույլերն ուղղակի դնում են «123456» կամ իրենց ծննդյան թիվը՝ հուսալով, որ էջը չեն կոտրի։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 19/20 — 25s — SCORING: Հովհաննես Թումանյան =====
+>>> OPEN 0:00  (scorer begins counting «Հովհաննես Թումանյան»)
+[reveal «գաղտնաբառ»] Պատասխանն էր գաղտնաբառ։ Հուսամ՝ այսօր ձեր ակաունտները չեք արգելափակի սխալ գրելու պատճառով։
+[lead-in] Մոտենում ենք ավարտին, տեսնենք ով կլինի ամենաարագը այս անգամ։
+[teaser]  Լոռվա ամենահայտնի բեղավոր գրողը։
+[pause 5 seconds]
+[hint]    Ամենայն հայոց բանաստեղծն է, ում «Անուշն» անգիր գիտես, իսկ դիմանկարը գրպանումդ է՝ հինգ հազարանոցի վրա։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+===== WINDOW 20/20 — 25s — SCORING: Կարգին հաղորդում =====
+>>> OPEN 0:00  (scorer begins counting «Կարգին հաղորդում»)
+[reveal «Հովհաննես Թումանյան»] Սա Հովհաննես Թումանյանն էր։ Մեր գրպանի հինգ հազարանոցների գլխավոր հերոսը։
+[lead-in] Եվ մեր վերջին առաջադրանքը, փորձեք փայլել վերջնագծում։
+[teaser]  Հին, բայց դեռ բոլորի մեջբերած կատակների շոուն։
+[pause 5 seconds]
+[hint]    Հայկոյի ու Մկոյի շոուն։ Հետո Հայկոն Երևանի քաղաքապետ դարձավ, բայց սքեթչերը մնացին։
+[pause 10 seconds]  (guessing time, before the next reveal)
+[viewers keep typing until the window ends]
+<<< CLOSE 0:25  (next window opens immediately)
+
+=== OUTRO (after the last window closes) ===
+[reveal «Կարգին հաղորդում»] Ճիշտ պատասխանն է Կարգին հաղորդում։ Դե ինչ, կարգին խաղացինք ու կարգին էլ հիշեցինք հին օրերը։
+Շնորհավորում եմ առաջատարներին, դուք այսօր անգերազանցելի էիք։ Հաջորդ անգամ բառերն ավելի բարդ են լինելու, այնպես որ լավ պատրաստվեք։ Միացեք մեզ հաջորդ եթերին, լավ մնացեք ու շատ ժպտացեք։
