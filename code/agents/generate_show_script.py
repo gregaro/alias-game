@@ -82,6 +82,12 @@ def episode_words(frame: dict, hints_by_word: dict) -> list[dict]:
     return words
 
 
+# Beat between a word's two hints, and the baked-in silence after the long hint
+# (the guessing time before the next reveal). Both are hand-added in AI Studio.
+HINT_PAUSE = 5
+GUESS_PAUSE = 10
+
+
 def assemble_tts(intro: str, windows: list[dict], final_reveal: str,
                  outro: str) -> str:
     """Paste-ready HeyGen script. The inline `[pause N seconds]` markers are
@@ -98,8 +104,8 @@ def assemble_tts(intro: str, windows: list[dict], final_reveal: str,
         "# HeyGen script. [pause N seconds] markers are NOT read by HeyGen —",
         "# they mark where to add a real pause by hand via HeyGen's AI Studio",
         "# pause tool, for that many seconds; delete the marker text once the",
-        "# pause is inserted. Render each block as its own clip; after the",
-        "# hint, add idle/guessing time in the editor to fill the window.",
+        "# pause is inserted. Render each block as its own clip. The pause after",
+        "# the long hint is the guessing time before the next reveal.",
         "# NEVER paste the # comment lines.",
         "",
         "# --- INTRO ---",
@@ -108,7 +114,8 @@ def assemble_tts(intro: str, windows: list[dict], final_reveal: str,
     ]
     for i, w in enumerate(windows, 1):
         parts = [w["reveal_prev"]] if w["reveal_prev"] else []
-        parts += [w["lead_in"], w["teaser"], "[pause 4 seconds]", w["closer"]]
+        parts += [w["lead_in"], w["teaser"], f"[pause {HINT_PAUSE} seconds]",
+                  w["closer"], f"[pause {GUESS_PAUSE} seconds]"]
         lines += [
             f"# --- WINDOW {i}: {w['word']} ---",
             " ".join(parts),
@@ -142,8 +149,9 @@ def assemble_txt(intro: str, words: list[dict], outro: str,
         lines += [
             f"[lead-in] {w['lead_in']}",
             f"[teaser]  {w['teaser']}",
-            "[pause 4 seconds]",
+            f"[pause {HINT_PAUSE} seconds]",
             f"[hint]    {w['closer']}",
+            f"[pause {GUESS_PAUSE} seconds]  (guessing time, before the next reveal)",
             "[viewers keep typing until the window ends]",
             f"<<< CLOSE 0:{window_seconds:02d}  (next window opens immediately)",
             "",
@@ -162,6 +170,10 @@ def main():
     global QUESTIONS_FILE, OUT_JSON, OUT_TXT, OUT_TTS
     parser = argparse.ArgumentParser(description="Stage 4: hints -> clip script")
     episode.add_argument(parser)
+    parser.add_argument("--reassemble", action="store_true",
+                        help="rebuild show_script.txt/_tts.txt from the existing "
+                             "show_script.json — no LLM, host wording unchanged "
+                             "(use after changing pause lengths)")
     args = parser.parse_args()
     ep = episode.resolve(args.episode)
     QUESTIONS_FILE = str(ep / episode.QUESTIONS)
@@ -169,6 +181,19 @@ def main():
     OUT_TXT = str(ep / episode.SCRIPT_TXT)
     OUT_TTS = str(ep / episode.SCRIPT_TTS)
     print(f"Episode: {episode.resolve_name(args.episode)}\n")
+
+    if args.reassemble:
+        with open(OUT_JSON, encoding="utf-8") as f:
+            sc = json.load(f)
+        ws = sc["windows"]
+        words = [{**w, "reveal": ws[i + 1]["reveal_prev"] if i + 1 < len(ws)
+                  else sc["final_reveal"]} for i, w in enumerate(ws)]
+        _write_atomic(OUT_TXT, assemble_txt(sc["intro"], words, sc["outro"],
+                                            sc["window_seconds"]))
+        _write_atomic(OUT_TTS, assemble_tts(sc["intro"], ws, sc["final_reveal"],
+                                            sc["outro"]))
+        print(f"Reassembled {OUT_TXT} and {OUT_TTS} from the existing JSON.")
+        return
 
     show = db.latest_state("hint_generator", "last_hints")
     if not show:
