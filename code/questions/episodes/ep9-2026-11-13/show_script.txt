@@ -8,7 +8,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 [lead-in] Դե ինչ, տեսնենք թե այս առաջինը ոնց եք գուշակելու։
 [teaser]  Գլուխդ կարգի բերող գլխավոր վարպետը։
 [pause 5 seconds]
-[hint]    Մասնագետ, ում վճարում ես, որպեսզի նա լվանա, չորացնի ու նոր ձև տա քո գլխին։
+[hint]    Մասնագետ, ում վճարում ես, որպեսզի նա լվանա, չորացնի ու նոր ձև տա քո մազերին։
 [pause 10 seconds]  (guessing time, before the next reveal)
 [viewers keep typing until the window ends]
 <<< CLOSE 0:25  (next window opens immediately)
@@ -127,7 +127,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 >>> OPEN 0:00  (scorer begins counting «քավոր»)
 [reveal «արդուկ»] Դա արդուկն էր։ Տանից դուրս գալուց հետո դրա մասին հիշելն ու ճանապարհից հետ դառնալը իսկական տանջանք է։
 [lead-in] Մատները պահեք ստեղնաշարին, որ վայրկյան չկորցնեք։
-[teaser]  Ամուսին չի, բայց պսակի մոտ կանգնած է։
+[teaser]  Ամուսին չէ, բայց պսակի մոտ կանգնած է։
 [pause 5 seconds]
 [hint]    Եկեղեցում նա է խաչը պահում, իսկ հետո ռեստորանում՝ ամենահաստ դրամապանակը։
 [pause 10 seconds]  (guessing time, before the next reveal)
@@ -159,7 +159,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 ===== WINDOW 15/20 — 25s — SCORING: օդանավակայան =====
 >>> OPEN 0:00  (scorer begins counting «օդանավակայան»)
 [reveal «հարսնացու»] Պատասխանն էր հարսնացու։ Ռեստորան ընտրելու պրոցեսը կարող է քայքայել նույնիսկ ամենաամուր նյարդերով փեսացուներին։
-[lead-in] Շարունակում ենք մեր խաղը, լարվեք։
+[lead-in] Շարունակում ենք մեր խաղը, չլարվեք։
 [teaser]  Ճամպրուկներ, հրաժեշտ ու թանկ սուրճ։
 [pause 5 seconds]
 [hint]    Մեր երկրում ամենահայտնին «Զվարթնոցն» է, որտեղից մարդիկ ինքնաթիռ են նստում ու թռչում։
@@ -182,7 +182,7 @@ Windows below are each exactly 25s and run back-to-back with NO gaps. Start the 
 >>> OPEN 0:00  (scorer begins counting «կով»)
 [reveal «սխտոր»] Բառը սխտորն էր։ Խաշ ուտելուց հետո մարդկանց մոտենալը իսկապես մեծ ու անշնորհակալ ռիսկ է։
 [lead-in] Տեսնենք այս անգամ ով կհասցնի առաջինը գրել։
-[teaser]  Հնդկաստանի ամենասուրբ ու անհոգ քաղաքացին։
+[teaser]  Հնդկաստանի ամենասուրբ ու անհոգ բնակիչը։
 [pause 5 seconds]
 [hint]    Հենց այս պոզավոր հաստլիկն է ասում «մու» և ապահովում մեզ թարմ կաթով ու մածունով։
 [pause 10 seconds]  (guessing time, before the next reveal)
