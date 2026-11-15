@@ -130,8 +130,10 @@ def check_video(path, tl):
         warn("ffprobe unavailable — skipped video duration check")
         return
     last = tl["outro_end"] if tl and tl["outro_end"] is not None else tl["outro_start"] if tl else None
-    if last is not None and dur < last:
-        fail(f"video is {dur:.0f}s but timeline runs to {last:.0f}s — wrong render?")
+    # Marks are rounded to 0.1s, so outro_end can sit a hair past the true end;
+    # a wrong render is off by seconds, not hundredths.
+    if last is not None and dur < last - 0.5:
+        fail(f"video is {dur:.1f}s but timeline runs to {last:.1f}s — wrong render?")
     else:
         ok(f"video length {dur:.0f}s covers the timeline")
 
