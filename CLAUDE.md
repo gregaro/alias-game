@@ -142,6 +142,9 @@ code/
 │       │                   Answers are hand-curated; stage 3 carries them
 │       │                   forward across ALL episodes, so a word that comes
 │       │                   back keeps its transliterations.
+│       ├── meta.json       {"public_episode": N | null}. The viewer-facing number;
+│       │                   folder names (epN) also count rehearsals. ep8 = public
+│       │                   #1, ep9 = #2. new_episode.py fills it (--internal = null).
 │       ├── timeline.json   Second-marks measured off THIS episode's rendered
 │       │                   video: one row per word {word, start, teaser,
 │       │                   hint} + outro_start + outro_end. `start` is where

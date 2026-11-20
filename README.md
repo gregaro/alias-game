@@ -8,10 +8,14 @@ speed decay, and renders a live leaderboard on the stream. The words come from l
 trend research, the hints are written by an LLM with a sarcastic party-host persona,
 and the host's video is generated with TTS + avatar tools.
 
-> **Status:** pre-launch. The full pipeline works end-to-end; a dress rehearsal has run
-> live on an unlisted YouTube stream with real chat participants, scoring and leaderboard
-> working as designed. Next milestone is the first public episode. This README evolves
-> with the project.
+> **Status:** live. Two public episodes have aired (internal ep8 and ep9 = public
+> Episodes 1 and 2); the earlier internal episodes were rehearsals with friends. The
+> full pipeline runs end-to-end. This README evolves with the project.
+>
+> **Numbering:** episode folders (`ep1`…`epN`) are internal ids and also count
+> rehearsals. The number viewers see is `public_episode` in each folder's
+> `meta.json` (`null` = never aired). `new_episode.py` assigns the next public number;
+> pass `--internal` for a rehearsal. `new_episode.py --list` shows both.
 
 ![Overlay during the dress rehearsal: leaderboard, host avatar, question lower-third, and live YouTube chat](assets/screenshots/dress-rehearsal-overlay.png)
 
@@ -223,7 +227,7 @@ failed localhost redirect URL back into the same process, then verify with
 - [x] Dress rehearsal on an unlisted stream
 - [x] Hint generation as a real agent loop: writer / blind solver / critic,
       3 rounds, best-candidate fallback (`code/agents/refine.py`)
-- [ ] First public episode
+- [x] First public episodes (public Episodes 1 and 2)
 - [ ] **Word generation (stage 1) as an agent loop too** — `research_words.py`
       is still a single pass. It plugs a second spec into the same
       `refine.py` engine; the open question is what replaces the blind

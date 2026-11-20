@@ -6,7 +6,13 @@ the words simply overwrites — it doesn't litter half-built episode folders.
 
     python code/agents/new_episode.py                  # ep<N+1>-<today>
     python code/agents/new_episode.py --date 2026-07-19
+    python code/agents/new_episode.py --internal       # rehearsal: no public number
     python code/agents/new_episode.py --list           # what exists
+
+Each folder gets a meta.json with its PUBLIC episode number (the next one in
+line), because the ep<N> folder name also counts rehearsals. Pass --internal
+for a dry run with friends and it stays null; the public counter only moves
+when a show actually airs.
 
 The new folder starts with an empty timeline.json template: the marks can only
 be measured off the rendered video, and until they are the scorer safely falls
@@ -60,6 +66,8 @@ def main():
     p = argparse.ArgumentParser(description="Create a new episode folder.")
     p.add_argument("--date", metavar="YYYY-MM-DD", default=None,
                    help="episode date (default: today)")
+    p.add_argument("--internal", action="store_true",
+                   help="rehearsal that will never air: no public episode number")
     p.add_argument("--list", action="store_true", help="list episodes and exit")
     args = p.parse_args()
 
@@ -67,7 +75,9 @@ def main():
         cur = episode.CURRENT_FILE.read_text().strip() \
             if episode.CURRENT_FILE.is_file() else None
         for name in episode.list_episodes():
-            print(f"  {'*' if name == cur else ' '} {name}")
+            pub = episode.public_number(name)
+            tag = f"public #{pub}" if pub else "internal"
+            print(f"  {'*' if name == cur else ' '} {name:<22} {tag}")
         print("\n  (* = current)")
         return
 
@@ -81,8 +91,13 @@ def main():
         json.dump(TIMELINE_TEMPLATE, f, ensure_ascii=False, indent=2)
         f.write("\n")
 
+    pub = None if args.internal else episode.next_public_number()
+    with open(d / episode.META, "w", encoding="utf-8") as f:
+        json.dump({"public_episode": pub}, f, indent=2)
+        f.write("\n")
+
     episode.set_current(name)
-    print(f"Created {d}")
+    print(f"Created {d}  ({'internal' if pub is None else f'public episode {pub}'})")
     print(f"current_episode -> {name}\n")
     # Cost reports use prices.json; a new episode is the natural moment to
     # notice it has gone stale, before the stages that spend money run.

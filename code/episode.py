@@ -16,6 +16,7 @@ old one.
 Shared by both code/agents/ and code/scorer/, which sit one level down and add
 this directory to sys.path to import it.
 """
+import json
 import re
 from datetime import date as _date
 from pathlib import Path
@@ -25,7 +26,11 @@ QUESTIONS_DIR = HERE / "questions"
 EPISODES_DIR = QUESTIONS_DIR / "episodes"
 CURRENT_FILE = QUESTIONS_DIR / "current_episode"
 
-# The five files that make up an episode.
+# The files that make up an episode. meta.json is tiny: it only says which
+# PUBLIC episode number (if any) this folder became. The folder name (ep1..epN)
+# stays the internal id — logs, answers and --episode all key on it — while
+# viewers only ever see the public number. null = internal rehearsal, never aired.
+META = "meta.json"
 QUESTIONS = "questions.json"
 TIMELINE = "timeline.json"
 SCRIPT_TXT = "show_script.txt"
@@ -110,6 +115,23 @@ def resolve(name: str | None = None) -> Path:
 def path(filename: str, name: str | None = None) -> Path:
     """Full path to one file inside an episode."""
     return resolve(name) / filename
+
+
+def public_number(name: str) -> int | None:
+    """Public episode number of `name`, or None if it never aired (rehearsal)."""
+    f = EPISODES_DIR / name / META
+    if not f.is_file():
+        return None
+    try:
+        n = json.loads(f.read_text(encoding="utf-8")).get("public_episode")
+    except (ValueError, OSError):
+        return None
+    return n if isinstance(n, int) else None
+
+
+def next_public_number() -> int:
+    """The public number the next aired show takes."""
+    return max((public_number(e) or 0 for e in list_episodes()), default=0) + 1
 
 
 def next_name(on: str | None = None) -> str:
